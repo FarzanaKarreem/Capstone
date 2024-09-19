@@ -1,8 +1,8 @@
+import { collection, doc, getDoc, onSnapshot, query, updateDoc, where } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
-import { ScrollView, Text, View, StyleSheet, ActivityIndicator, Button, Modal, TouchableOpacity, Alert } from 'react-native';
-import { collection, query, where, onSnapshot, updateDoc, doc } from 'firebase/firestore';
+import { ActivityIndicator, Alert, Button, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { firestore } from '../firebase/firebaseConfig';
-import { useUser } from './UserProvider'; // Import the user context
+import { useUser } from './UserProvider';
 
 const StudentSessionStatusScreen = () => {
   const { user } = useUser(); // Get user data from context
@@ -10,7 +10,7 @@ const StudentSessionStatusScreen = () => {
   const [loading, setLoading] = useState(true);
   const [ratingModalVisible, setRatingModalVisible] = useState(false);
   const [currentSessionId, setCurrentSessionId] = useState(null);
-  const [rating, setRating] = useState(0); // Holds the current rating
+  const [rating, setRating] = useState(0);
 
   useEffect(() => {
     if (!user) return;
@@ -37,22 +37,71 @@ const StudentSessionStatusScreen = () => {
 
   const handleRatingSubmit = async () => {
     if (currentSessionId && rating > 0) {
-      const sessionRef = doc(firestore, 'sessions', currentSessionId);
-      await updateDoc(sessionRef, { studentRating: rating }); // Save student rating
-      setRatingModalVisible(false);
-      setRating(0); // Reset the rating
-
-      // Show alert message after rating submission
-      Alert.alert(
-        'Payment Reminder',
-        'Please ensure to pay your tutor by cash or Zapper.',
-        [
-          { text: 'OK', onPress: () => console.log('Reminder acknowledged') },
-        ],
-        { cancelable: false }
-      );
+      try {
+        // Get session details
+        const sessionRef = doc(firestore, 'sessions', currentSessionId);
+        const sessionDoc = await getDoc(sessionRef);
+        const sessionData = sessionDoc.data();
+  
+        // Get tutor ID from session details
+        const tutorId = sessionData.tutorId;
+  
+        // Reference to the tutor's document in the 'users' collection
+        const tutorRef = doc(firestore, 'users', tutorId);
+        const tutorDoc = await getDoc(tutorRef);
+        const tutorData = tutorDoc.data();
+  
+        // If tutor document exists, update the ratings
+        if (tutorDoc.exists()) {
+          // Update the tutor's ratings array using arrayUnion
+          await updateDoc(tutorRef, {
+            ratings: arrayUnion(rating),
+          });
+  
+          // Re-fetch the updated tutor document to calculate the new average rating
+          const updatedTutorDoc = await getDoc(tutorRef);
+          const updatedTutorData = updatedTutorDoc.data();
+  
+          // Calculate new average rating
+          const updatedRatings = updatedTutorData.ratings || [];
+          const newAverageRating = updatedRatings.reduce((a, b) => a + b, 0) / updatedRatings.length;
+  
+          // Update tutor document with new average rating
+          await updateDoc(tutorRef, {
+            averageRating: newAverageRating,
+          });
+        } else {
+          console.error("Tutor document does not exist!");
+        }
+  
+        // Update session document with student rating
+        await updateDoc(sessionRef, { studentRating: rating });
+  
+        // Show success message after successful submission
+        Alert.alert(
+          'Success',
+          'Your rating has been successfully submitted!',
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                setRatingModalVisible(false); // Close the modal
+                setRating(0); // Reset the rating
+              },
+            },
+          ],
+          { cancelable: false }
+        );
+      } catch (error) {
+        console.error("Error updating rating: ", error); // Log the error
+        Alert.alert("Error", "There was an issue submitting your rating. Please try again.");
+      }
+    } else {
+      // Show an alert if rating is not set
+      Alert.alert("Error", "Please select a rating before submitting.");
     }
   };
+  
 
   const renderItem = (item) => {
     const now = new Date();
@@ -61,7 +110,7 @@ const StudentSessionStatusScreen = () => {
 
     return (
       <View key={item.id} style={styles.card}>
-        <Text>Tutor : {item.tutorId}</Text>
+        <Text>Tutor: {item.tutorId}</Text>
         <Text style={styles.cardContent}>Date: {sessionDate.toDateString()}</Text>
         <Text style={styles.cardContent}>Time: {item.timeSlot}</Text>
         <Text style={styles.status}>Status: {item.status}</Text>

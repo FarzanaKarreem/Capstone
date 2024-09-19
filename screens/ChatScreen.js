@@ -13,11 +13,6 @@ const Chat = ({ route }) => {
   const [sessionDetails, setSessionDetails] = useState(null);
 
   useEffect(() => {
-    if (!request) {
-      Alert.alert("Error", "No chat request data provided.");
-      return;
-    }
-
     const chatId = `${tutorId}_${studentId}`;
     const chatDocRef = doc(firestore, 'chats', chatId);
 
@@ -39,11 +34,17 @@ const Chat = ({ route }) => {
           });
           return unsubscribe;
         } else {
+          // Create chat document if it doesn't exist
           await setDoc(chatDocRef, {
             sessionId: request.id,
             tutorId: tutorId,
             studentId: studentId,
             messages: [],
+            module: request.module,
+            timeSlot: request.timeSlot,
+            additionalDetails: request.additionalDetails
+          });
+          setSessionDetails({
             module: request.module,
             timeSlot: request.timeSlot,
             additionalDetails: request.additionalDetails
@@ -104,9 +105,9 @@ const Chat = ({ route }) => {
   return (
     <View style={styles.container}>
       <View style={styles.sessionDetails}>
-        <Text>Module: {sessionDetails?.module}</Text>
-        <Text>Time Slot: {sessionDetails?.timeSlot}</Text>
-        <Text>Additional Details: {sessionDetails?.additionalDetails}</Text>
+        <Text style={styles.sessionDetailText}>Module: {sessionDetails?.module}</Text>
+        <Text style={styles.sessionDetailText}>Time Slot: {sessionDetails?.timeSlot}</Text>
+        <Text style={styles.sessionDetailText}>Additional Details: {sessionDetails?.additionalDetails}</Text>
       </View>
       <FlatList
         data={messages}
@@ -147,6 +148,10 @@ const styles = StyleSheet.create({
     borderBottomColor: '#ddd',
     backgroundColor: '#fff',
     marginBottom: 10,
+  },
+  sessionDetailText: {
+    fontSize: 16,
+    color: '#333',
   },
   inputContainer: {
     flexDirection: 'row',

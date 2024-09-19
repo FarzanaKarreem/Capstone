@@ -81,13 +81,17 @@ const TutorHomeScreen = ({ navigation }) => {
       </TouchableOpacity>
 
       {/* Add an image above the sessions button */}
+      <TouchableOpacity onPress={() => navigation.navigate('AllChats')}>
       <Image source={require('../assets/sessions.png')} style={styles.icon} />
+      </TouchableOpacity>
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('StudentSessionStatus', { user })}>
         <Text style={styles.buttonText}>My Sessions</Text>
       </TouchableOpacity>
 
       {/* Add an image above the chats button */}
+      <TouchableOpacity onPress={() => navigation.navigate('AllChats')}>
       <Image source={require('../assets/chats.png')} style={styles.icon} />
+      </TouchableOpacity>
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('AllStudentChats', { user })}>
         <Text style={styles.buttonText}>My Chats</Text>
       </TouchableOpacity>

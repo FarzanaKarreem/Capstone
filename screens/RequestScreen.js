@@ -3,10 +3,11 @@ import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import React, { useState } from 'react';
 import { Alert, Button, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { firestore } from '../firebase/firebaseConfig'; // Adjust the path according to your file structure
+import { useUser } from '../screens/UserProvider';
 
 const RequestScreen = ({ route, navigation }) => {
   const { tutor } = route.params;  // Receive tutor details from the previous screen
-  const { user } = route.params;
+  const { user } = useUser();
 
   console.log('User Data:', user); // Log user data
   console.log('Student Number:', user?.studentNum); // Log student number
