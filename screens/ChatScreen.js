@@ -1,6 +1,6 @@
 import { arrayUnion, doc, getDoc, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, FlatList, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { firestore } from '../firebase/firebaseConfig';
 import { useUser } from '../screens/UserProvider';
 
@@ -34,7 +34,6 @@ const Chat = ({ route }) => {
           });
           return unsubscribe;
         } else {
-          // Create chat document if it doesn't exist
           await setDoc(chatDocRef, {
             sessionId: request.id,
             tutorId: tutorId,
@@ -103,7 +102,11 @@ const Chat = ({ route }) => {
   }
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView 
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0} // Adjust this value if needed
+    >
       <View style={styles.sessionDetails}>
         <Text style={styles.sessionDetailText}>Module: {sessionDetails?.module}</Text>
         <Text style={styles.sessionDetailText}>Time Slot: {sessionDetails?.timeSlot}</Text>
@@ -113,7 +116,6 @@ const Chat = ({ route }) => {
         data={messages}
         renderItem={renderItem}
         keyExtractor={item => item.createdAt.toDate().toString()}
-        inverted // Invert the list to show the latest messages at the bottom
       />
       <View style={styles.inputContainer}>
         <TextInput
@@ -127,14 +129,14 @@ const Chat = ({ route }) => {
           <Text style={styles.sendButtonText}>Send</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#f4f4f9', // Light background color
     padding: 10,
   },
   loadingContainer: {
@@ -143,22 +145,30 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sessionDetails: {
-    padding: 10,
+    padding: 15,
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
     marginBottom: 10,
+    borderRadius: 8,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
   sessionDetailText: {
     fontSize: 16,
     color: '#333',
+    fontFamily: 'Avenir',
   },
   inputContainer: {
     flexDirection: 'row',
     padding: 10,
     borderTopWidth: 1,
     borderTopColor: '#ddd',
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
+    borderRadius: 8,
   },
   input: {
     flex: 1,
@@ -166,7 +176,8 @@ const styles = StyleSheet.create({
     borderColor: '#ddd',
     borderRadius: 5,
     padding: 10,
-    backgroundColor: '#fff',
+    backgroundColor: '#f9f9f9',
+    fontFamily: 'Avenir',
   },
   sendButton: {
     backgroundColor: '#007bff',
@@ -180,6 +191,7 @@ const styles = StyleSheet.create({
   sendButtonText: {
     color: '#fff',
     fontWeight: 'bold',
+    fontFamily: 'Avenir',
   },
   messageContainer: {
     padding: 10,
@@ -189,24 +201,27 @@ const styles = StyleSheet.create({
   },
   userMessage: {
     alignSelf: 'flex-end',
-    backgroundColor: '#b0e0e6', // Light blue for user messages
+    backgroundColor: '#a3d9a5',
   },
   tutorMessage: {
     alignSelf: 'flex-start',
-    backgroundColor: '#e1e1e1', // Light grey for tutor messages
+    backgroundColor: '#e1e1e1',
   },
   messageText: {
-    color: '#000', // Black text color
+    color: '#000',
+    fontFamily: 'Avenir',
   },
   senderName: {
     fontWeight: 'bold',
-    color: '#333', // Dark grey for sender name
+    color: '#333',
     marginBottom: 5,
+    fontFamily: 'Avenir',
   },
   timestamp: {
     fontSize: 12,
     color: '#888',
     marginTop: 5,
+    fontFamily: 'Avenir',
   },
 });
 

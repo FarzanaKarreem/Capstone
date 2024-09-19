@@ -1,7 +1,5 @@
-import { signOut } from 'firebase/auth'; // Import signOut function from Firebase
 import React, { useLayoutEffect } from 'react';
 import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { auth } from '../firebase/firebaseConfig'; // Import auth instance
 import { useUser } from '../screens/UserProvider'; // Import the user context
 
 const TutorHomeScreen = ({ navigation }) => {
@@ -26,13 +24,23 @@ const TutorHomeScreen = ({ navigation }) => {
   }
 
   // Function to handle logout
-  const handleLogout = async () => {
-    try {
-      await signOut(auth); // Sign out the user
-      navigation.navigate('Login'); // Navigate to Login screen
-    } catch (error) {
-      Alert.alert('Logout Failed', error.message);
-    }
+  const handleLogout = () => {
+    Alert.alert(
+      "Logout",
+      "Are you sure you want to log out?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel"
+        },
+        {
+          text: "Logout",
+          onPress: () => {
+            navigation.navigate('Login'); // Navigate to Login screen
+          }
+        }
+      ]
+    );
   };
 
   useLayoutEffect(() => {

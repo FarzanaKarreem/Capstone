@@ -1,9 +1,8 @@
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome'; // Import FontAwesome icons
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'; // Added StyleSheet here
+import Icon from 'react-native-vector-icons/FontAwesome';
 import { firestore } from '../firebase/firebaseConfig';
-import styles from '../styles/styles';
 
 const TutorListScreen = ({ route, navigation }) => {
   const { module } = route.params;
@@ -26,12 +25,14 @@ const TutorListScreen = ({ route, navigation }) => {
           }
         });
 
-        const tutorsWithRatings = await Promise.all(fetchedTutors.map(async (tutor) => {
-          const averageRating = await calculateAverageRating(tutor.id);
-          return { ...tutor, averageRating };
-        }));
+        // Sort tutors by average rating in descending order
+        const sortedTutors = fetchedTutors.sort((a, b) => {
+          const aRating = a.averageRating || 0;
+          const bRating = b.averageRating || 0;
+          return bRating - aRating; // Sort from highest to lowest
+        });
 
-        setTutors(tutorsWithRatings);
+        setTutors(sortedTutors);
       } catch (error) {
         console.error("Error fetching tutors: ", error);
       } finally {
@@ -64,7 +65,6 @@ const TutorListScreen = ({ route, navigation }) => {
                 <Text style={styles.cardContent}>Bio: {tutor.bio}</Text>
                 <Text style={styles.cardContent}>Availability: {tutor.availability}</Text>
                 
-                {/* Display verification status with icons */}
                 <View style={styles.verificationContainer}>
                   <Text style={styles.cardContent}>Verified: </Text>
                   {tutor.isVerified ? (
@@ -74,9 +74,8 @@ const TutorListScreen = ({ route, navigation }) => {
                   )}
                 </View>
 
-                {/* Display average rating */}
                 <Text style={styles.cardContent}>
-                  Average Rating: {tutor.averageRating} ★
+                  Average Rating: {tutor.averageRating ? `${tutor.averageRating} ★` : 'No ratings yet'}
                 </Text>
 
                 <TouchableOpacity onPress={() => navigation.navigate('TutorDetail', { tutor })}>
@@ -91,24 +90,71 @@ const TutorListScreen = ({ route, navigation }) => {
   );
 };
 
+// Styling
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#f8f9fa', // Light background color
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: '700',
+    textAlign: 'center',
+    color: '#343a40',
+    marginBottom: 20,
+    fontFamily: 'Avenir',
+  },
+  noResultsContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 50,
+  },
+  noResultsText: {
+    fontSize: 18,
+    color: '#6c757d',
+    marginBottom: 10,
+    fontFamily: 'Avenir',
+  },
+  link: {
+    color: '#007bff',
+    fontSize: 16,
+    fontWeight: '500',
+    fontFamily: 'Avenir',
+    textAlign: 'center',
+    textDecorationLine: 'underline',
+  },
+  card: {
+    backgroundColor: '#ffffff',
+    padding: 15,
+    borderRadius: 12,
+    marginBottom: 15,
+    borderWidth: 1,
+    borderColor: '#ced4da',
+    shadowColor: '#000', // iOS shadow
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+    elevation: 2, // Android shadow
+  },
+  cardTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#007bff',
+    marginBottom: 5,
+    fontFamily: 'Avenir',
+  },
+  cardContent: {
+    fontSize: 16,
+    color: '#495057',
+    marginBottom: 5,
+    fontFamily: 'Avenir',
+  },
+  verificationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+});
+
 export default TutorListScreen;
-
-// Function to calculate average tutor rating, reusable in both screens
-const calculateAverageRating = async (tutorId) => {
-  const sessionsRef = collection(firestore, 'sessions');
-  const q = query(sessionsRef, where('tutorId', '==', tutorId));
-  const querySnapshot = await getDocs(q);
-  
-  let totalRating = 0;
-  let ratingCount = 0;
-
-  querySnapshot.forEach(doc => {
-    const session = doc.data();
-    if (session.tutorRating) {
-      totalRating += session.tutorRating;
-      ratingCount++;
-    }
-  });
-
-  return ratingCount > 0 ? (totalRating / ratingCount).toFixed(1) : 'No ratings yet';
-};

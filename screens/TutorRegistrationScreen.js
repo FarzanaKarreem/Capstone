@@ -17,6 +17,7 @@ const TutorRegistrationScreen = ({ navigation }) => {
   const [transcript, setTranscript] = useState(null);
   const [isVerified, setIsVerified] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [termsVisible, setTermsVisible] = useState(false); // New state for T&Cs modal
 
   const handleUploadTranscript = async () => {
     try {
@@ -52,6 +53,13 @@ const TutorRegistrationScreen = ({ navigation }) => {
       return;
     }
   
+    // Show the T&Cs modal
+    setTermsVisible(true);
+  };
+
+  const handleTermsAccept = async () => {
+    setTermsVisible(false); // Hide T&Cs modal
+
     try {
       // Register tutor with Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -81,6 +89,10 @@ const TutorRegistrationScreen = ({ navigation }) => {
     } catch (error) {
       Alert.alert('Registration Failed', error.message);
     }
+  };
+
+  const handleTermsDecline = () => {
+    setTermsVisible(false); // Hide T&Cs modal, do nothing else
   };
 
   return (
@@ -135,8 +147,10 @@ const TutorRegistrationScreen = ({ navigation }) => {
       <TouchableOpacity style={styles.button} onPress={handleUploadTranscript}>
         <Text style={styles.buttonText}>Upload Transcript (Optional)</Text>
       </TouchableOpacity>
-      {transcript && <Text style={styles.image}>Transcript Uploaded</Text>}
-      {isVerified && <Text style={styles.verified}>Verified</Text>}
+      <View style={styles.transcriptContainer}>
+        {transcript && <Text style={styles.image}>Transcript Uploaded</Text>}
+        {isVerified && <Text style={styles.verified}>Verified</Text>}
+      </View>
       <TouchableOpacity style={styles.button} onPress={handleSubmit}>
         <Text style={styles.buttonText}>Register</Text>
       </TouchableOpacity>
@@ -178,6 +192,44 @@ const TutorRegistrationScreen = ({ navigation }) => {
           </View>
         </View>
       </Modal>
+
+      {/* Modal for Terms and Conditions */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={termsVisible}
+        onRequestClose={() => setTermsVisible(!termsVisible)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalTitle}>Terms and Conditions</Text>
+            <View style={styles.termsContainer}>
+              <Text style={styles.modalText}>
+                By registering, you agree to our Terms and Conditions.
+                {'\n\n'}
+                1. There will be no tolerance of disrespect.{'\n'}
+                2. You must show up for your scheduled meeting - be respectful to your student.{'\n'}
+                3. You must review your student after the session.{'\n'}
+                4. Ensure you comply with payment plans.
+              </Text>
+            </View>
+            <View style={styles.modalButtons}>
+              <Pressable
+                style={styles.modalButton}
+                onPress={handleTermsAccept}
+              >
+                <Text style={styles.modalButtonText}>Accept</Text>
+              </Pressable>
+              <Pressable
+                style={styles.modalButton}
+                onPress={handleTermsDecline}
+              >
+                <Text style={styles.modalButtonText}>Decline</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -186,37 +238,45 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
+    backgroundColor: '#f5f5f5', // Light grey background
   },
   title: {
     fontSize: 24,
+    fontFamily: 'Avenir', // Ensure consistent font family
+    color: '#333', // Dark grey text color
     marginBottom: 20,
   },
   input: {
     borderBottomWidth: 1,
+    borderBottomColor: '#ddd', // Light grey border
     marginBottom: 15,
     padding: 8,
-    justifyContent: 'center',
+    fontSize: 16,
+    fontFamily: 'Avenir', // Ensure consistent font family
+    color: '#333', // Dark grey text color
   },
   button: {
-    backgroundColor: '#007bff',
-    padding: 10,
+    backgroundColor: '#ADD8E8', // Primary blue color
+    padding: 15,
     marginTop: 20,
     borderRadius: 5,
+    alignItems: 'center',
   },
   buttonText: {
     color: '#fff',
     fontSize: 18,
-    textAlign: 'center',
+    fontFamily: 'Avenir', // Ensure consistent font family
   },
   image: {
-    width: 100,
-    height: 100,
     marginTop: 10,
+    fontFamily: 'Avenir', // Ensure consistent font family
+    color: '#333', // Dark grey text color
   },
   verified: {
     color: 'green',
     marginTop: 10,
     fontSize: 18,
+    fontFamily: 'Avenir', // Ensure consistent font family
   },
   modalContainer: {
     flex: 1,
@@ -233,10 +293,12 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 18,
+    fontFamily: 'Avenir', // Ensure consistent font family
+    color: '#333', // Dark grey text color
     marginBottom: 15,
   },
   modalButton: {
-    backgroundColor: '#007bff',
+    backgroundColor: '#ADD8E8', // Primary blue color
     padding: 10,
     marginVertical: 5,
     borderRadius: 5,
@@ -246,14 +308,37 @@ const styles = StyleSheet.create({
   modalButtonText: {
     color: '#fff',
     fontSize: 16,
+    fontFamily: 'Avenir', // Ensure consistent font family
   },
   modalCloseButton: {
     marginTop: 15,
   },
   modalCloseButtonText: {
-    color: '#007bff',
+    color: '#ADD8E8', // Primary blue color
     fontSize: 16,
+    fontFamily: 'Avenir', // Ensure consistent font family
+  },
+  transcriptContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  termsContainer: {
+    padding: 10,
+  },
+  modalText: {
+    fontSize: 16,
+    fontFamily: 'Avenir', // Ensure consistent font family
+    color: '#333', // Dark grey text color
+  },
+  modalButtons: {
+    flexDirection: 'column',
+    marginTop: 15,
+    width: '100%',
+    justifyContent: 'space-between',
   },
 });
 
 export default TutorRegistrationScreen;
+

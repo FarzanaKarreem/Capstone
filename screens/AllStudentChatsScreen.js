@@ -1,29 +1,36 @@
-import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { collection, getDocs, onSnapshot, query, where } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { firestore } from '../firebase/firebaseConfig';
 import { useUser } from '../screens/UserProvider';
 
 const AllStudentChatsScreen = ({ navigation }) => {
-  const { user } = useUser(); // Get user data from context
+  const { user } = useUser();
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user) return;
 
-    // Fetch sessions where the current user is the student and the status is 'accepted'
     const q = query(
       collection(firestore, 'sessions'),
       where('studentId', '==', user.studentNum),
       where('status', '==', 'accepted')
     );
 
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+    const unsubscribe = onSnapshot(q, async (querySnapshot) => {
       const fetchedSessions = [];
-      querySnapshot.forEach((doc) => {
-        fetchedSessions.push({ id: doc.id, ...doc.data() });
-      });
+      for (const doc of querySnapshot.docs) {
+        const sessionData = { id: doc.id, ...doc.data() };
+        // Fetch tutor data for each session
+        const tutorDoc = await getDocs(query(collection(firestore, 'users'), where('studentNum', '==', sessionData.tutorId)));
+        if (!tutorDoc.empty) {
+          const tutorData = tutorDoc.docs[0].data();
+          sessionData.tutorName = tutorData.name || 'Unknown';
+          sessionData.tutorImage = tutorData.image || null;
+        }
+        fetchedSessions.push(sessionData);
+      }
       setSessions(fetchedSessions);
       setLoading(false);
     }, (error) => {
@@ -44,11 +51,15 @@ const AllStudentChatsScreen = ({ navigation }) => {
 
   const renderSessionItem = ({ item }) => (
     <TouchableOpacity style={styles.chatItem} onPress={() => handleChatPress(item)}>
+      <Image
+        source={item.tutorImage ? { uri: item.tutorImage } : require('../assets/defaultProfilePic.png')}
+        style={styles.avatar}
+      />
       <View style={styles.chatSummary}>
-        <Text style={styles.tutorName}>Tutor: {item.tutorId}</Text>
-        <Text>Module: {item.module}</Text>
-        <Text>Time: {item.timeSlot}</Text>
-        <Text>Additional Info: {item.additionalDetails}</Text>
+        <Text style={styles.tutorName}>{item.tutorName}</Text>
+        <Text style={styles.moduleText}>{item.module}</Text>
+        <Text style={styles.timeText}>{item.timeSlot}</Text>
+        <Text style={styles.additionalInfo} numberOfLines={1}>{item.additionalDetails}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -56,7 +67,7 @@ const AllStudentChatsScreen = ({ navigation }) => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007bff" />
+        <ActivityIndicator size="large" color="#4A90E2" />
       </View>
     );
   }
@@ -75,24 +86,56 @@ const AllStudentChatsScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#F5F5F5',
   },
   chatItem: {
+    flexDirection: 'row',
     padding: 15,
     borderBottomWidth: 1,
-    borderBottomColor: '#ddd',
+    borderBottomColor: '#E0E0E0',
+    backgroundColor: '#FFFFFF',
+    alignItems: 'center',
+  },
+  avatar: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    marginRight: 15,
   },
   chatSummary: {
-    flexDirection: 'column',
+    flex: 1,
+    justifyContent: 'center',
   },
   tutorName: {
+    fontFamily: 'System',
+    fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 5,
+    color: '#333333',
+    marginBottom: 4,
+  },
+  moduleText: {
+    fontFamily: 'System',
+    fontSize: 14,
+    color: '#4A90E2',
+    marginBottom: 2,
+  },
+  timeText: {
+    fontFamily: 'System',
+    fontSize: 12,
+    color: '#888888',
+    marginBottom: 2,
+  },
+  additionalInfo: {
+    fontFamily: 'System',
+    fontSize: 12,
+    color: '#666666',
+    fontStyle: 'italic',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#F5F5F5',
   },
 });
 

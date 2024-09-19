@@ -1,7 +1,7 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import React, { useState } from 'react';
-import { Alert, Button, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { firestore } from '../firebase/firebaseConfig'; // Adjust the path according to your file structure
 import { useUser } from '../screens/UserProvider';
 
@@ -128,7 +128,13 @@ const RequestScreen = ({ route, navigation }) => {
           style={[styles.input, isFocused && styles.inputFocused]}
         />
 
-        <Button title="Submit Request" onPress={handleSubmit} style={styles.button} />
+        {/* Submit Request Button */}
+        <TouchableOpacity
+          onPress={handleSubmit}
+          style={styles.submitButton}
+        >
+          <Text style={styles.submitButtonText}>Submit Request</Text>
+        </TouchableOpacity>
 
         {/* Time Slot Modal */}
         <Modal
@@ -198,6 +204,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     marginBottom: 20,
     textAlign: 'center',
+    fontFamily: 'Avenir', // Use the preferred font
   },
   input: {
     height: 40,
@@ -213,8 +220,23 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     backgroundColor: '#f0f8ff',
   },
-  button: {
-    marginTop: 20,
+  submitButton: {
+    backgroundColor: '#007bff', // Background color of the button
+    padding: 15, // Padding inside the button
+    borderRadius: 5, // Rounded corners
+    alignItems: 'center', // Center the text inside the button
+    marginTop: 20, // Space above the button
+    shadowColor: '#000', // Shadow color
+    shadowOffset: { width: 0, height: 2 }, // Shadow position
+    shadowOpacity: 0.25, // Shadow opacity
+    shadowRadius: 3.84, // Shadow blur
+    elevation: 5, // Shadow for Android
+  },
+  submitButtonText: {
+    color: '#fff', // Text color
+    fontSize: 16, // Text size
+    fontWeight: 'bold', // Bold text
+    fontFamily: 'Avenir', // Use the preferred font
   },
   modalContainer: {
     flex: 1,
@@ -232,6 +254,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     marginBottom: 15,
+    fontFamily: 'Avenir', // Use the preferred font
   },
   modalButton: {
     backgroundColor: '#007bff',
@@ -242,15 +265,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalButtonText: {
-    color: '#fff',
+    color: 'white',
     fontSize: 16,
+    fontFamily: 'Avenir', // Use the preferred font
   },
   modalCloseButton: {
+    backgroundColor: '#ccc',
+    padding: 10,
     marginTop: 15,
+    borderRadius: 5,
+    width: '100%',
+    alignItems: 'center',
   },
   modalCloseButtonText: {
-    color: '#007bff',
+    color: 'white',
     fontSize: 16,
+    fontFamily: 'Avenir', // Use the preferred font
   },
 });
 

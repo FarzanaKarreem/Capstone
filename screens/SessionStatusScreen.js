@@ -1,10 +1,10 @@
-import { collection, doc, onSnapshot, query, updateDoc, where } from 'firebase/firestore';
+import { arrayUnion, collection, doc, getDoc, getDocs, onSnapshot, query, updateDoc, where } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Button, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { firestore } from '../firebase/firebaseConfig';
-import { useUser } from './UserProvider'; // Assuming you're using a user context for student/tutor info
+import { useUser } from './UserProvider';
 
-const SessionStatusScreen = ({navigation}) => {
+const SessionStatusScreen = () => {
   const { user } = useUser(); // Get user data from context
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -13,33 +13,19 @@ const SessionStatusScreen = ({navigation}) => {
   const [rating, setRating] = useState(0);
 
   useEffect(() => {
-    if (!user || !user.studentNum) return;
+    if (!user) return;
 
-    // Query to fetch sessions only for the specific tutor
-    const q = query(collection(firestore, 'sessions'), where('tutorId', '==', user.studentNum));
+    const q = query(
+      collection(firestore, 'sessions'),
+      where('tutorId', '==', user.studentNum) // Change to filter by tutorId
+    );
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const fetchedSessions = [];
       querySnapshot.forEach((doc) => {
         fetchedSessions.push({ id: doc.id, ...doc.data() });
       });
-
-      // Sort sessions so that completed ones come last
-      const sortedSessions = fetchedSessions.sort((a, b) => {
-        const aDate = new Date(a.sessionDate.toDate ? a.sessionDate.toDate() : a.sessionDate);
-        const bDate = new Date(b.sessionDate.toDate ? b.sessionDate.toDate() : b.sessionDate);
-        const now = new Date();
-
-        // Completed sessions should be at the bottom
-        const aIsCompleted = aDate < now && (a.studentRating || a.tutorRating);
-        const bIsCompleted = bDate < now && (b.studentRating || b.tutorRating);
-
-        if (aIsCompleted && !bIsCompleted) return 1;
-        if (!aIsCompleted && bIsCompleted) return -1;
-        return aDate - bDate;
-      });
-
-      setSessions(sortedSessions);
+      setSessions(fetchedSessions);
       setLoading(false);
     }, (error) => {
       console.error("Error fetching sessions: ", error);
@@ -51,14 +37,66 @@ const SessionStatusScreen = ({navigation}) => {
 
   const handleRatingSubmit = async () => {
     if (currentSessionId && rating > 0) {
-      const sessionRef = doc(firestore, 'sessions', currentSessionId);
-      await updateDoc(sessionRef, { tutorRating: rating, status: 'completed' }); // Save rating and set session to 'completed'
-      setRatingModalVisible(false);
-      setRating(0); // Reset the rating
-      navigation.navigate('Payment')
+      try {
+        const sessionRef = doc(firestore, 'sessions', currentSessionId);
+        const sessionDoc = await getDoc(sessionRef);
+        if (!sessionDoc.exists()) {
+          Alert.alert("Error", "Session document not found.");
+          return;
+        }
+        
+        const sessionData = sessionDoc.data();
+        const studentStudentNum = sessionData.studentId;
+  
+        const usersRef = collection(firestore, 'users');
+        const q = query(usersRef, where('studentNum', '==', studentStudentNum));
+        const querySnapshot = await getDocs(q);
+  
+        if (!querySnapshot.empty) {
+          const studentDoc = querySnapshot.docs[0];
+          const studentData = studentDoc.data();
+  
+          // Ensure ratings array exists
+          if (!studentData.ratings) {
+            console.log('Initializing ratings array');
+            await updateDoc(studentDoc.ref, { ratings: [] });
+          }
+  
+          await updateDoc(studentDoc.ref, {
+            ratings: arrayUnion(rating),
+          });
+  
+          const updatedStudentDoc = await getDoc(studentDoc.ref);
+          const updatedStudentData = updatedStudentDoc.data();
+          const updatedRatings = updatedStudentData.ratings || [];
+          const newAverageRating = updatedRatings.reduce((a, b) => a + b, 0) / updatedRatings.length;
+  
+          await updateDoc(studentDoc.ref, {
+            averageRating: newAverageRating,
+          });
+  
+          await updateDoc(sessionRef, { tutorRating: rating });
+  
+          Alert.alert('Success', 'Your rating has been successfully submitted!', [
+            { text: 'OK', onPress: () => {
+                setRatingModalVisible(false);
+                setRating(0);
+              }
+            },
+          ]);
+        } else {
+          console.error("No student document found for studentNum:", studentStudentNum);
+          Alert.alert("Error", "The student for this session does not exist.");
+        }
+      } catch (error) {
+        console.error("Error updating rating: ", error);
+        Alert.alert("Error", "There was an issue submitting your rating. Please try again.");
+      }
+    } else {
+      Alert.alert("Error", "Please select a rating before submitting.");
     }
   };
-
+  
   const renderItem = (item) => {
     const now = new Date();
     const sessionDate = new Date(item.sessionDate.toDate ? item.sessionDate.toDate() : item.sessionDate);
@@ -66,44 +104,32 @@ const SessionStatusScreen = ({navigation}) => {
 
     return (
       <View key={item.id} style={styles.card}>
-        <Text>Student: {item.studentId}</Text>
+        <Text style={styles.studentText}>Student: {item.studentId}</Text>
         <Text style={styles.cardContent}>Date: {sessionDate.toDateString()}</Text>
         <Text style={styles.cardContent}>Time: {item.timeSlot}</Text>
         <Text style={styles.status}>Status: {item.status}</Text>
 
-        {/* Show rating button if the session is completed and the tutor hasn't rated yet */}
-        {isCompleted && !item.tutorRating && (
-          <Button
-            title="Rate this session"
+        {isCompleted && !item.studentRating && (
+          <TouchableOpacity
+            style={styles.rateButton}
             onPress={() => {
               setCurrentSessionId(item.id);
               setRatingModalVisible(true);
             }}
-          />
-        )}
-
-        {/* Show the student's rating if they've rated already */}
-        {isCompleted && item.studentRating && (
-          <Text>Student's Rating: {item.studentRating}</Text>
+          >
+            <Text style={styles.rateButtonText}>Rate this session</Text>
+          </TouchableOpacity>
         )}
       </View>
     );
   };
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#007bff" />
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>My Tutor Sessions</Text>
+      <Text style={styles.title}>My Sessions</Text>
       <ScrollView>
-        {sessions.length === 0 ? (
-          <Text style={styles.noSessionsText}>No sessions found.</Text>
+        {loading ? (
+          <ActivityIndicator size="large" color="#007bff" />
         ) : (
           sessions.map(renderItem)
         )}
@@ -128,7 +154,9 @@ const SessionStatusScreen = ({navigation}) => {
                 </TouchableOpacity>
               ))}
             </View>
-            <Button title="Submit" onPress={handleRatingSubmit} />
+            <TouchableOpacity style={styles.submitButton} onPress={handleRatingSubmit}>
+              <Text style={styles.submitButtonText}>Submit</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -140,40 +168,54 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#fff',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  noSessionsText: {
-    textAlign: 'center',
-    marginTop: 20,
-    fontSize: 16,
-    color: '#555',
+    backgroundColor: '#f4f4f9',
   },
   title: {
     fontSize: 24,
     marginBottom: 20,
     textAlign: 'center',
+    color: '#333',
+    fontFamily: 'Avenir',
   },
   card: {
     padding: 15,
     borderBottomColor: '#ddd',
     borderBottomWidth: 1,
     marginBottom: 10,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#fff',
     borderRadius: 8,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
   },
-  cardContent: {
-    fontSize: 16,
-    marginBottom: 5,
-  },
-  status: {
+  studentText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#007bff',
+    color: '#333',
+    fontFamily: 'Avenir',
+  },
+  cardContent: {
+    fontSize: 14,
+    color: '#666',
+    fontFamily: 'Avenir',
+  },
+  status: {
+    fontSize: 14,
+    color: '#555',
+    fontFamily: 'Avenir',
+  },
+  rateButton: {
+    backgroundColor: '#aaf0c9',
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 10,
+    alignItems: 'center',
+  },
+  rateButtonText: {
+    fontSize: 16,
+    color: '#000',
   },
   modalContainer: {
     flex: 1,
@@ -191,6 +233,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 20,
+    fontFamily: 'Avenir',
   },
   ratingContainer: {
     flexDirection: 'row',
@@ -202,8 +245,16 @@ const styles = StyleSheet.create({
     margin: 5,
     color: '#FFD700',
   },
+  submitButton: {
+    backgroundColor: '#007bff',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+  submitButtonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
 });
 
 export default SessionStatusScreen;
-
- 

@@ -1,17 +1,17 @@
 import { addDoc, collection } from 'firebase/firestore';
 import React, { useState } from 'react';
 import {
-  Alert,
-  Modal,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    Modal,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { firestore } from "../firebase/firebaseConfig";
-import { useUser } from './UserProvider'; // Import the user context
+import { useUser } from './UserProvider';
 
 const HelpScreen = () => {
   const { user } = useUser();
@@ -33,7 +33,6 @@ const HelpScreen = () => {
     }
 
     try {
-      // Ensure db is passed as the first argument to collection()
       await addDoc(collection(firestore, 'helpRequests'), {
         email: user?.email,
         message,
@@ -123,37 +122,42 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     padding: 20,
     justifyContent: 'center',
-    backgroundColor: '#f0f4f8',
+    backgroundColor: '#e8f0f2', // Soft background color
   },
   title: {
-    fontSize: 24,
+    fontSize: 26,
     fontWeight: 'bold',
+    color: '#333', // Darker color for title
     marginBottom: 20,
+    fontFamily: 'Avenir', // Use Avenir font family
   },
   label: {
     fontSize: 18,
     marginVertical: 5,
+    color: '#555', // Slightly lighter for labels
   },
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
-    padding: 10,
-    borderRadius: 5,
+    padding: 12,
+    borderRadius: 8,
     marginBottom: 15,
     backgroundColor: '#fff',
+    fontFamily: 'Avenir', // Consistent font family
   },
   messageInput: {
     borderWidth: 1,
     borderColor: '#ccc',
-    padding: 10,
-    borderRadius: 5,
+    padding: 12,
+    borderRadius: 8,
     height: 150,
     marginBottom: 15,
     backgroundColor: '#fff',
     textAlignVertical: 'top',
+    fontFamily: 'Avenir', // Consistent font family
   },
   button: {
-    backgroundColor: '#007bff',
+    backgroundColor: '#007bff', // Blue color for button
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
@@ -168,7 +172,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ccc',
     padding: 12,
-    borderRadius: 5,
+    borderRadius: 8,
     marginBottom: 15,
     backgroundColor: '#fff',
   },

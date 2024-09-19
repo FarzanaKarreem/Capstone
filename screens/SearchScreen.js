@@ -1,7 +1,7 @@
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
-import { Button, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome'; // Import FontAwesome icons
+import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import { firestore } from '../firebase/firebaseConfig';
 
 const SearchScreen = ({ route, navigation }) => {
@@ -11,28 +11,16 @@ const SearchScreen = ({ route, navigation }) => {
   const { user } = route.params;
 
   useEffect(() => {
-    const fetchAverageRating = async (tutorId) => {
+    const fetchTutorRating = async (tutorId) => {
       try {
-        const sessionsQuery = query(
-          collection(firestore, 'sessions'),
-          where('tutorId', '==', tutorId),
-        );
-        const querySnapshot = await getDocs(sessionsQuery);
-
-        let totalRating = 0;
-        let count = 0;
-
-        querySnapshot.forEach(doc => {
-          const session = doc.data();
-          if (session.rating) {
-            totalRating += session.rating;
-            count++;
-          }
-        });
-
-        return count > 0 ? (totalRating / count).toFixed(1) : 'No Rating';
+        const tutorDoc = await getDoc(doc(firestore, 'users', tutorId));
+        if (tutorDoc.exists()) {
+          const tutorData = tutorDoc.data();
+          return tutorData.averageRating || 'No Rating';
+        }
+        return 'No Rating';
       } catch (error) {
-        console.error('Error fetching tutor ratings:', error);
+        console.error('Error fetching tutor rating:', error);
         return 'No Rating';
       }
     };
@@ -57,8 +45,8 @@ const SearchScreen = ({ route, navigation }) => {
             const tutorDegreeWords = tutorDegree.split(' ').filter(Boolean);
 
             if (studentDegree === tutorDegree || studentDegreeWords.some(word => tutorDegreeWords.includes(word))) {
-              const avgRating = await fetchAverageRating(doc.id);
-              tutors.push({ id: doc.id, ...tutor, avgRating });
+              const averageRating = await fetchTutorRating(doc.id);
+              tutors.push({ id: doc.id, ...tutor, averageRating });
             }
           }
         }
@@ -83,7 +71,20 @@ const SearchScreen = ({ route, navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Search for Tutors</Text>
+      <Text style={styles.title}>Find Your Perfect Tutor</Text>
+
+      <View style={styles.searchSection}>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter Module"
+          placeholderTextColor="#A0AEC0"
+          value={module}
+          onChangeText={setModule}
+        />
+        <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
+          <Text style={styles.searchButtonText}>Search</Text>
+        </TouchableOpacity>
+      </View>
 
       {noSuggestions ? (
         <Text style={styles.noSuggestionsText}>No suggested tutors available</Text>
@@ -99,9 +100,12 @@ const SearchScreen = ({ route, navigation }) => {
                   onPress={() => navigation.navigate('TutorDetail', { tutor, user })}
                 >
                   <Text style={styles.cardTitle}>{tutor.name}</Text>
-                  {tutor.isVerified && <Icon name="check" size={16} color="green" style={styles.verifiedIcon} />}
+                  {tutor.isVerified && <Icon name="check-circle" size={16} color="#48BB78" style={styles.verifiedIcon} />}
                   <Text style={styles.cardContent}>Degree: {tutor.degree}</Text>
-                  <Text style={styles.cardContent}>Rating: {tutor.avgRating}</Text>
+                  <View style={styles.ratingContainer}>
+                    <Icon name="star" size={16} color="#F6E05E" />
+                    <Text style={styles.ratingText}>{tutor.averageRating}</Text>
+                  </View>
                 </TouchableOpacity>
               ))}
             </ScrollView>
@@ -109,15 +113,10 @@ const SearchScreen = ({ route, navigation }) => {
         )
       )}
 
-      <View style={styles.searchSection}>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter Module"
-          value={module}
-          onChangeText={setModule}
-        />
-        <Button title="Search" onPress={handleSearch} />
-      </View>
+      <Image
+        source={{ uri: '/api/placeholder/400/200' }}
+        style={styles.bottomImage}
+      />
     </View>
   );
 };
@@ -126,56 +125,104 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
+    backgroundColor: '#F7FAFC',
   },
   title: {
-    fontSize: 24,
+    fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 20,
     textAlign: 'center',
+    color: '#2D3748',
+    fontFamily: 'Avenir',
+  },
+  searchSection: {
+    marginBottom: 20,
+  },
+  input: {
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: 8,
+    padding: 15,
+    marginBottom: 10,
+    fontSize: 16,
+    color: '#4A5568',
+  },
+  searchButton: {
+    backgroundColor: '#4299E1',
+    borderRadius: 8,
+    padding: 15,
+    alignItems: 'center',
+  },
+  searchButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   suggestionsContainer: {
     marginBottom: 20,
   },
   subtitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     marginBottom: 10,
+    color: '#2D3748',
+    fontFamily: 'Avenir',
   },
   suggestionCard: {
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#FFFFFF',
     padding: 15,
-    borderRadius: 8,
+    borderRadius: 12,
     marginRight: 15,
     alignItems: 'center',
     justifyContent: 'center',
-    width: 150,
+    width: 160,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   cardTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: 'bold',
+    marginBottom: 5,
+    color: '#2D3748',
+    fontFamily: 'Avenir',
   },
   cardContent: {
     fontSize: 14,
     marginTop: 5,
+    color: '#4A5568',
+    fontFamily: 'Avenir',
   },
-  searchSection: {
-    marginTop: 20,
+  ratingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 5,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 10,
+  ratingText: {
+    marginLeft: 5,
+    fontSize: 14,
+    color: '#4A5568',
+    fontFamily: 'Avenir',
   },
   noSuggestionsText: {
     fontSize: 16,
     fontStyle: 'italic',
     textAlign: 'center',
     marginTop: 10,
+    color: '#718096',
+    fontFamily: 'Avenir',
   },
   verifiedIcon: {
     marginLeft: 5,
+  },
+  bottomImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: 12,
+    marginTop: 20,
   },
 });
 
