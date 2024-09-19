@@ -81,6 +81,7 @@ const SessionStatusScreen = () => {
             { text: 'OK', onPress: () => {
                 setRatingModalVisible(false);
                 setRating(0);
+                NavigationPreloadManager.navi
               }
             },
           ]);

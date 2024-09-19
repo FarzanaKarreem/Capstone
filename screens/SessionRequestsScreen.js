@@ -117,9 +117,11 @@ const SessionRequests = ({ navigation }) => {
       <Text style={styles.detail}>Additional Info: {item.additionalDetails}</Text>
       <Text style={styles.detail}>Student ID: {item.studentId}</Text>
       
-      {/* Display student rating */}
-      <Text style={styles.detail}>Student Rating: {studentRatings[item.studentId] ?? 'N/A'}</Text>
-
+      {/* Display student rating with star */}
+      <Text style={styles.detail}>
+        Student Rating: {studentRatings[item.studentId] !== undefined ? `${studentRatings[item.studentId]} ★` : 'N/A'}
+      </Text>
+  
       <View style={styles.buttonContainer}>
         <TouchableOpacity style={styles.acceptButton} onPress={() => handleAccept(item)}>
           <Text style={styles.buttonText}>Accept</Text>
