@@ -28,7 +28,7 @@ const SettingsScreen = ({ navigation }) => {
           setEmail(userData.email || '');
           setBio(userData.bio || '');
           setProfilePicture(userData.image || null);
-          setAverageRating(userData.averageRating || 0);
+          setAverageRating(userData.averageRating || '');
           setTranscript(userData.transcript || null);
           setIsVerified(userData.isVerified || false);
         }

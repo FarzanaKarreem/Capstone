@@ -5,7 +5,7 @@ const RegistrationScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Register as</Text>
-      
+
       <TouchableOpacity 
         style={styles.optionContainer} 
         onPress={() => navigation.navigate('StudentRegistration')}
@@ -34,30 +34,45 @@ const RegistrationScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
+    padding: 20,
+    justifyContent: 'flex-start',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f0f4f8', // Match TutorHomeScreen background
   },
   title: {
-    fontSize: 24,
-    marginBottom: 20,
+    fontSize: 28, // Match TutorHomeScreen title size
     fontWeight: 'bold',
     color: '#333',
+    marginBottom: 20,
+    fontFamily: 'Avenir', // Match TutorHomeScreen font
   },
   optionContainer: {
     alignItems: 'center',
     marginVertical: 15,
+    backgroundColor: '#ADD8E6', // Light blue background color
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    borderRadius: 10,
+    width: '80%', // Adjust width to fit the content
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 5,
+    elevation: 3, // Add shadow for Android
+    marginTop: 50,
+    marginBottom:50,
   },
   image: {
-    width: 100,
-    height: 100,
+    width: 250, // Match TutorHomeScreen icon width
+    height: 100, // Match TutorHomeScreen icon height
     borderRadius: 10,
     marginBottom: 10,
   },
   buttonText: {
     fontSize: 18,
-    color: '#6200ee',
-    fontWeight: '500',
+    color: '#fff', // White text color for contrast
+    fontWeight: 'bold',
+    fontFamily: 'Avenir', // Match TutorHomeScreen font
   },
 });
 
