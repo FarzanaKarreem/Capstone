@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "530891669348",
+    "project_id": "tutor-5039e",
+    "storage_bucket": "tutor-5039e.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:53089166 9348:android:29781ec379ee8385218471",
+        "android_client_info": {
+          "package_name": "com.uct.tutorapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBzs-yS2vnv7Ibhoh1k9OAyOV7yRD7ssUA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
