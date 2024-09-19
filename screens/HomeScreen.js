@@ -75,13 +75,15 @@ const TutorHomeScreen = ({ navigation }) => {
       <Text style={styles.subTitle}>Your role: {user.role}</Text>
 
       {/* Add an image above the search button */}
+      <TouchableOpacity onPress={() => navigation.navigate('Search', { user})}>
       <Image source={require('../assets/requests.png')} style={styles.icon} />
+      </TouchableOpacity>
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('Search', { user })}>
         <Text style={styles.buttonText}>Search for Tutors</Text>
       </TouchableOpacity>
 
       {/* Add an image above the sessions button */}
-      <TouchableOpacity onPress={() => navigation.navigate('AllChats')}>
+      <TouchableOpacity onPress={() => navigation.navigate('StudentSessionStatus', { user })}>
       <Image source={require('../assets/sessions.png')} style={styles.icon} />
       </TouchableOpacity>
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('StudentSessionStatus', { user })}>
@@ -89,7 +91,7 @@ const TutorHomeScreen = ({ navigation }) => {
       </TouchableOpacity>
 
       {/* Add an image above the chats button */}
-      <TouchableOpacity onPress={() => navigation.navigate('AllChats')}>
+      <TouchableOpacity onPress={() => navigation.navigate('AllStudentChats', { user })}>
       <Image source={require('../assets/chats.png')} style={styles.icon} />
       </TouchableOpacity>
       <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('AllStudentChats', { user })}>
@@ -132,13 +134,15 @@ const styles = StyleSheet.create({
     padding: 15,
     borderRadius: 10,
     marginVertical: 10, // Slight margin around the buttons
-    width: '80%',
+    width: '72%',
     alignItems: 'center',
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 5,
     elevation: 3, // Add shadow for Android
+    marginTop: -15,
+    marginBottom: 34,
   },
   buttonText: {
     color: '#fff',

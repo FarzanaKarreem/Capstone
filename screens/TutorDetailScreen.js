@@ -1,6 +1,7 @@
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome'; // Import FontAwesome icons
 import { firestore } from '../firebase/firebaseConfig';
 import styles from '../styles/styles';
 
@@ -25,7 +26,17 @@ const TutorDetailScreen = ({ route, navigation }) => {
         <Text style={styles.cardContent}>Degree: {tutor.degree}</Text>
         <Text style={styles.cardContent}>Bio: {tutor.bio}</Text>
         <Text style={styles.cardContent}>Availability: {tutor.availability}</Text>
-        <Text style={styles.cardContent}>Verified: {tutor.verified ? 'Yes' : 'No'}</Text>
+        
+        {/* Display verification status with icons */}
+        <View style={styles.verificationContainer}>
+          <Text style={styles.cardContent}>Verified: </Text>
+          {tutor.isVerified ? (
+            <Icon name="check" size={16} color="green" />
+          ) : (
+            <Icon name="times" size={16} color="red" />
+          )}
+        </View>
+        
         <Text style={styles.cardContent}>Rating: {averageRating} ★</Text>
         <TouchableOpacity 
           onPress={() => navigation.navigate('Request', { tutor })}
@@ -38,6 +49,7 @@ const TutorDetailScreen = ({ route, navigation }) => {
 };
 
 export default TutorDetailScreen;
+
 // Function to calculate average tutor rating, reusable in both screens
 const calculateAverageRating = async (tutorId) => {
   const sessionsRef = collection(firestore, 'sessions');

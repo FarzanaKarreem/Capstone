@@ -1,10 +1,10 @@
-import { collection, doc, getDoc, onSnapshot, query, updateDoc, where } from 'firebase/firestore';
+import { collection, doc, onSnapshot, query, updateDoc, where } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Button, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { firestore } from '../firebase/firebaseConfig';
-import { useUser } from './UserProvider';
+import { useUser } from './UserProvider'; // Assuming you're using a user context for student/tutor info
 
-const SessionStatusScreen = () => {
+const SessionStatusScreen = ({navigation}) => {
   const { user } = useUser(); // Get user data from context
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -15,6 +15,7 @@ const SessionStatusScreen = () => {
   useEffect(() => {
     if (!user || !user.studentNum) return;
 
+    // Query to fetch sessions only for the specific tutor
     const q = query(collection(firestore, 'sessions'), where('tutorId', '==', user.studentNum));
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
@@ -23,7 +24,22 @@ const SessionStatusScreen = () => {
         fetchedSessions.push({ id: doc.id, ...doc.data() });
       });
 
-      setSessions(fetchedSessions);
+      // Sort sessions so that completed ones come last
+      const sortedSessions = fetchedSessions.sort((a, b) => {
+        const aDate = new Date(a.sessionDate.toDate ? a.sessionDate.toDate() : a.sessionDate);
+        const bDate = new Date(b.sessionDate.toDate ? b.sessionDate.toDate() : b.sessionDate);
+        const now = new Date();
+
+        // Completed sessions should be at the bottom
+        const aIsCompleted = aDate < now && (a.studentRating || a.tutorRating);
+        const bIsCompleted = bDate < now && (b.studentRating || b.tutorRating);
+
+        if (aIsCompleted && !bIsCompleted) return 1;
+        if (!aIsCompleted && bIsCompleted) return -1;
+        return aDate - bDate;
+      });
+
+      setSessions(sortedSessions);
       setLoading(false);
     }, (error) => {
       console.error("Error fetching sessions: ", error);
@@ -36,37 +52,11 @@ const SessionStatusScreen = () => {
   const handleRatingSubmit = async () => {
     if (currentSessionId && rating > 0) {
       const sessionRef = doc(firestore, 'sessions', currentSessionId);
-      await updateDoc(sessionRef, { tutorRating: rating, status: 'completed' });
-
-      // Get student ID from the current session
-      const session = sessions.find(session => session.id === currentSessionId);
-      if (session) {
-        const studentId = session.studentId;
-        const studentRef = doc(firestore, 'users', studentId);
-
-        // Add rating to the student's ratings array
-        await updateDoc(studentRef, {
-          ratings: firebase.firestore.FieldValue.arrayUnion(rating)
-        });
-
-        // Update the student's average rating
-        await updateAverageRating(studentRef, rating);
-      }
-
+      await updateDoc(sessionRef, { tutorRating: rating, status: 'completed' }); // Save rating and set session to 'completed'
       setRatingModalVisible(false);
       setRating(0); // Reset the rating
+      navigation.navigate('Payment')
     }
-  };
-
-  const updateAverageRating = async (userRef, newRating) => {
-    const userDoc = await getDoc(userRef);
-    const userData = userDoc.data();
-    const ratings = userData.ratings || [];
-
-    // Calculate new average rating
-    const newAverageRating = (ratings.reduce((a, b) => a + b, 0) + newRating) / (ratings.length + 1);
-
-    await updateDoc(userRef, { averageRating: newAverageRating });
   };
 
   const renderItem = (item) => {
@@ -81,6 +71,7 @@ const SessionStatusScreen = () => {
         <Text style={styles.cardContent}>Time: {item.timeSlot}</Text>
         <Text style={styles.status}>Status: {item.status}</Text>
 
+        {/* Show rating button if the session is completed and the tutor hasn't rated yet */}
         {isCompleted && !item.tutorRating && (
           <Button
             title="Rate this session"
@@ -90,16 +81,29 @@ const SessionStatusScreen = () => {
             }}
           />
         )}
+
+        {/* Show the student's rating if they've rated already */}
+        {isCompleted && item.studentRating && (
+          <Text>Student's Rating: {item.studentRating}</Text>
+        )}
       </View>
     );
   };
 
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#007bff" />
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>My Sessions</Text>
+      <Text style={styles.title}>My Tutor Sessions</Text>
       <ScrollView>
-        {loading ? (
-          <ActivityIndicator size="large" color="#007bff" />
+        {sessions.length === 0 ? (
+          <Text style={styles.noSessionsText}>No sessions found.</Text>
         ) : (
           sessions.map(renderItem)
         )}
@@ -138,6 +142,22 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#fff',
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  noSessionsText: {
+    textAlign: 'center',
+    marginTop: 20,
+    fontSize: 16,
+    color: '#555',
+  },
+  title: {
+    fontSize: 24,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
   card: {
     padding: 15,
     borderBottomColor: '#ddd',
@@ -145,6 +165,15 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     backgroundColor: '#f9f9f9',
     borderRadius: 8,
+  },
+  cardContent: {
+    fontSize: 16,
+    marginBottom: 5,
+  },
+  status: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#007bff',
   },
   modalContainer: {
     flex: 1,
@@ -176,3 +205,5 @@ const styles = StyleSheet.create({
 });
 
 export default SessionStatusScreen;
+
+ 

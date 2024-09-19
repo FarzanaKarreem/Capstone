@@ -1,6 +1,7 @@
+import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
-import { doc, updateDoc, onSnapshot } from 'firebase/firestore';
-import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
+import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
+import { deleteObject, getDownloadURL, getStorage, ref, uploadBytes } from 'firebase/storage';
 import React, { useEffect, useState } from 'react';
 import { Alert, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { firestore } from '../firebase/firebaseConfig';
@@ -13,6 +14,9 @@ const SettingsScreen = ({ navigation }) => {
   const [email, setEmail] = useState('');
   const [bio, setBio] = useState('');
   const [averageRating, setAverageRating] = useState(0);
+  const [transcript, setTranscript] = useState(null);
+  const [isVerified, setIsVerified] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     if (user?.uid) {
@@ -25,6 +29,8 @@ const SettingsScreen = ({ navigation }) => {
           setBio(userData.bio || '');
           setProfilePicture(userData.image || null);
           setAverageRating(userData.averageRating || 0);
+          setTranscript(userData.transcript || null);
+          setIsVerified(userData.isVerified || false);
         }
       });
 
@@ -51,11 +57,32 @@ const SettingsScreen = ({ navigation }) => {
     }
   };
 
-  const uploadImageAsync = async (uri) => {
+  const handlePickTranscript = async () => {
+    try {
+      const result = await DocumentPicker.getDocumentAsync({
+        type: ['application/pdf'],
+        copyToCacheDirectory: false,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setTranscript(result.assets[0].uri);
+        setIsVerified(true); // Set as verified when transcript is uploaded
+      } else if (result.canceled) {
+        console.log('User cancelled document picker');
+      } else {
+        Alert.alert('Error', 'An unexpected error occurred while picking the document');
+      }
+    } catch (error) {
+      console.error('Error picking document:', error);
+      Alert.alert('Error', `An error occurred while picking the document: ${error.message}`);
+    }
+  };
+
+  const uploadFileAsync = async (uri, path) => {
     const response = await fetch(uri);
     const blob = await response.blob();
     const storage = getStorage();
-    const storageRef = ref(storage, `users/${user.uid}/profilePicture`);
+    const storageRef = ref(storage, path);
     await uploadBytes(storageRef, blob);
     return await getDownloadURL(storageRef);
   };
@@ -108,7 +135,12 @@ const SettingsScreen = ({ navigation }) => {
     try {
       let imageUrl = profilePicture;
       if (profilePicture && profilePicture !== user.image) {
-        imageUrl = await uploadImageAsync(profilePicture);
+        imageUrl = await uploadFileAsync(profilePicture, `users/${user.uid}/profilePicture`);
+      }
+
+      let transcriptUrl = transcript;
+      if (user.role === 'tutor' && transcript && transcript !== user.transcript) {
+        transcriptUrl = await uploadFileAsync(transcript, `users/${user.uid}/transcript`);
       }
 
       const userDocRef = doc(firestore, 'users', user.uid);
@@ -117,6 +149,8 @@ const SettingsScreen = ({ navigation }) => {
         email,
         bio,
         image: imageUrl,
+        transcript: transcriptUrl,
+        isVerified, // Update verification status
       });
 
       setUser(prev => ({
@@ -125,6 +159,8 @@ const SettingsScreen = ({ navigation }) => {
         email,
         bio,
         image: imageUrl,
+        transcript: transcriptUrl,
+        isVerified,
       }));
 
       Alert.alert('Success', 'Your changes have been saved.');
@@ -188,12 +224,18 @@ const SettingsScreen = ({ navigation }) => {
         </View>
       </View>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Name"
-        value={name}
-        onChangeText={setName}
-      />
+      <View style={styles.nameContainer}>
+        <TextInput
+          style={styles.nameInput}
+          placeholder="Name"
+          value={name}
+          onChangeText={setName}
+        />
+        {user.role === 'tutor' && isVerified && (
+          <Text style={styles.tick}>✓</Text>
+        )}
+      </View>
+
       <TextInput
         style={styles.input}
         placeholder="Email"
@@ -213,15 +255,27 @@ const SettingsScreen = ({ navigation }) => {
         <View style={styles.starsContainer}>{renderStars()}</View>
       </View>
 
+      {user.role === 'tutor' && !isVerified && (
+        <>
+          <TouchableOpacity style={styles.button} onPress={handlePickTranscript}>
+            <Text style={styles.buttonText}>Upload Transcript</Text>
+          </TouchableOpacity>
+        </>
+      )}
+
+      {transcript && isVerified && (
+        <Text style={styles.transcriptText}>Transcript Uploaded</Text>
+      )}
+
       <TouchableOpacity style={styles.button} onPress={handleSaveChanges}>
         <Text style={styles.buttonText}>Save Changes</Text>
       </TouchableOpacity>
-      
+
       <TouchableOpacity style={styles.button} onPress={handleLogout}>
         <Text style={styles.buttonText}>Logout</Text>
       </TouchableOpacity>
-      
-      <TouchableOpacity style={[styles.button, styles.deleteButton]} onPress={handleDeleteAccount}>
+
+      <TouchableOpacity style={styles.button} onPress={handleDeleteAccount}>
         <Text style={styles.buttonText}>Delete Account</Text>
       </TouchableOpacity>
     </View>
@@ -232,89 +286,95 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#f5f5f5',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 20,
-    textAlign: 'center',
   },
   profileSection: {
     alignItems: 'center',
     marginBottom: 20,
   },
   profilePicture: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    marginBottom: 10,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
   },
   profileButtonsContainer: {
     flexDirection: 'row',
-    justifyContent: 'center',
     marginTop: 10,
   },
   editButton: {
-    backgroundColor: '#4a90e2',
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 20,
+    backgroundColor: '#007BFF',
+    padding: 10,
+    borderRadius: 5,
     marginRight: 10,
-  },
-  removeButton: {
-    backgroundColor: '#e74c3c',
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    borderRadius: 20,
   },
   editButtonText: {
     color: '#fff',
-    fontSize: 14,
+  },
+  removeButton: {
+    backgroundColor: '#FF4D4D',
+    padding: 10,
+    borderRadius: 5,
   },
   removeButtonText: {
     color: '#fff',
-    fontSize: 14,
   },
-  input: {
-    height: 40,
-    borderColor: '#ddd',
-    borderWidth: 1,
-    borderRadius: 5,
-    marginBottom: 15,
-    paddingHorizontal: 10,
-    backgroundColor: '#fff',
-  },
-  button: {
-    backgroundColor: '#4a90e2',
-    padding: 15,
-    borderRadius: 5,
-    marginVertical: 10,
-    alignItems: 'center',
-  },
-  deleteButton: {
-    backgroundColor: '#e74c3c',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  ratingContainer: {
+  nameContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginVertical: 15,
+    marginBottom: 10,
+  },
+  nameInput: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 5,
+    padding: 10,
+    flex: 1,
+  },
+  tick: {
+    fontSize: 20,
+    color: 'green',
+    marginLeft: 10,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10,
+  },
+  ratingContainer: {
+    marginBottom: 20,
   },
   averageRatingText: {
-    fontSize: 16,
-    marginRight: 10,
+    fontSize: 18,
+    marginBottom: 5,
   },
   starsContainer: {
     flexDirection: 'row',
   },
   star: {
     fontSize: 20,
-    color: '#f1c40f',
+    color: '#FFD700',
+  },
+  button: {
+    backgroundColor: '#ADD8E6',
+    padding: 15,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  transcriptText: {
+    fontSize: 16,
+    color: 'green',
+    marginVertical: 10,
   },
 });
 

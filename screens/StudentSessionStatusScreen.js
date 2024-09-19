@@ -1,4 +1,4 @@
-import { collection, doc, getDoc, onSnapshot, query, updateDoc, where } from 'firebase/firestore';
+import { arrayUnion, collection, doc, getDoc, getDocs, onSnapshot, query, updateDoc, where } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Button, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { firestore } from '../firebase/firebaseConfig';
@@ -43,35 +43,50 @@ const StudentSessionStatusScreen = () => {
         const sessionDoc = await getDoc(sessionRef);
         const sessionData = sessionDoc.data();
   
-        // Get tutor ID from session details
-        const tutorId = sessionData.tutorId;
+        // Log the session data and tutorId for debugging
+        console.log('Session Data:', sessionData);
   
-        // Reference to the tutor's document in the 'users' collection
-        const tutorRef = doc(firestore, 'users', tutorId);
-        const tutorDoc = await getDoc(tutorRef);
-        const tutorData = tutorDoc.data();
+        // Get tutor ID (which is the studentNum) from session details
+        const tutorStudentNum = sessionData.tutorId;
+        console.log('Tutor Student Number:', tutorStudentNum);  // Log the tutor's studentNum for debugging
   
-        // If tutor document exists, update the ratings
-        if (tutorDoc.exists()) {
+        // Query the 'users' collection for the tutor using the studentNum
+        const usersRef = collection(firestore, 'users');
+        const q = query(usersRef, where('studentNum', '==', tutorStudentNum));
+  
+        // Execute the query
+        const querySnapshot = await getDocs(q);
+  
+        if (!querySnapshot.empty) {
+          // Assume the first result is the correct tutor document
+          const tutorDoc = querySnapshot.docs[0];
+          const tutorData = tutorDoc.data();
+          console.log('Tutor Data:', tutorData);  // Log tutor data for verification
+  
           // Update the tutor's ratings array using arrayUnion
-          await updateDoc(tutorRef, {
-            ratings: arrayUnion(rating),
+          await updateDoc(tutorDoc.ref, {
+            ratings: arrayUnion(rating),  // Append the new rating
           });
   
           // Re-fetch the updated tutor document to calculate the new average rating
-          const updatedTutorDoc = await getDoc(tutorRef);
+          const updatedTutorDoc = await getDoc(tutorDoc.ref);
           const updatedTutorData = updatedTutorDoc.data();
   
           // Calculate new average rating
           const updatedRatings = updatedTutorData.ratings || [];
           const newAverageRating = updatedRatings.reduce((a, b) => a + b, 0) / updatedRatings.length;
+          
+          // Log for debugging
+          console.log('New Average Rating:', newAverageRating);
   
           // Update tutor document with new average rating
-          await updateDoc(tutorRef, {
+          await updateDoc(tutorDoc.ref, {
             averageRating: newAverageRating,
           });
         } else {
-          console.error("Tutor document does not exist!");
+          console.error("Tutor document with studentNum does not exist! Tutor studentNum:", tutorStudentNum);
+          Alert.alert("Error", "The tutor for this session does not exist. Please check the session data.");
+          return;  // Exit early since the tutor document doesn't exist
         }
   
         // Update session document with student rating
@@ -93,7 +108,7 @@ const StudentSessionStatusScreen = () => {
           { cancelable: false }
         );
       } catch (error) {
-        console.error("Error updating rating: ", error); // Log the error
+        console.error("Error updating rating: ", error);  // Log the error
         Alert.alert("Error", "There was an issue submitting your rating. Please try again.");
       }
     } else {
@@ -101,6 +116,7 @@ const StudentSessionStatusScreen = () => {
       Alert.alert("Error", "Please select a rating before submitting.");
     }
   };
+  
   
 
   const renderItem = (item) => {

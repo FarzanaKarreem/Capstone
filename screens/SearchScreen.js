@@ -1,6 +1,7 @@
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import { Button, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import Icon from 'react-native-vector-icons/FontAwesome'; // Import FontAwesome icons
 import { firestore } from '../firebase/firebaseConfig';
 
 const SearchScreen = ({ route, navigation }) => {
@@ -98,6 +99,7 @@ const SearchScreen = ({ route, navigation }) => {
                   onPress={() => navigation.navigate('TutorDetail', { tutor, user })}
                 >
                   <Text style={styles.cardTitle}>{tutor.name}</Text>
+                  {tutor.isVerified && <Icon name="check" size={16} color="green" style={styles.verifiedIcon} />}
                   <Text style={styles.cardContent}>Degree: {tutor.degree}</Text>
                   <Text style={styles.cardContent}>Rating: {tutor.avgRating}</Text>
                 </TouchableOpacity>
@@ -171,6 +173,9 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     textAlign: 'center',
     marginTop: 10,
+  },
+  verifiedIcon: {
+    marginLeft: 5,
   },
 });
 
