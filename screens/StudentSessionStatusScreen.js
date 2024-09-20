@@ -1,3 +1,11 @@
+/**
+ * StudentSessionStatusScreen screen
+ * 
+ * This screen displays the status of sessions for students. It fetches
+ * the sessions where the current user is a student and filters them based
+ * on their status (pending or accepted or completed) and date. Students can rate their 
+ * sessions after they are completed.
+ */
 import { arrayUnion, collection, doc, getDoc, getDocs, onSnapshot, query, updateDoc, where } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';

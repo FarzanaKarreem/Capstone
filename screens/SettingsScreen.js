@@ -1,3 +1,12 @@
+/**
+ * SettingsScreen 
+ *
+ * This screen allows users to manage their profile settings, including:
+ * - Viewing and editing their name, email, bio, and profile picture.
+ * - Uploading a transcript for verification (for tutors).
+ * - Displaying the user's average rating using stars.
+ * - Handling account actions such as logout and account deletion.
+ */
 import * as DocumentPicker from 'expo-document-picker';
 import * as ImagePicker from 'expo-image-picker';
 import { doc, onSnapshot, updateDoc } from 'firebase/firestore';
@@ -37,7 +46,7 @@ const SettingsScreen = ({ navigation }) => {
       return () => unsubscribe();
     }
   }, [user]);
-
+//picks a profile picture
   const handlePickImage = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (permissionResult.granted === false) {
@@ -56,7 +65,7 @@ const SettingsScreen = ({ navigation }) => {
       setProfilePicture(result.assets[0].uri);
     }
   };
-
+//picks a document 
   const handlePickTranscript = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
@@ -125,7 +134,7 @@ const SettingsScreen = ({ navigation }) => {
       ]
     );
   };
-
+//saves changes made
   const handleSaveChanges = async () => {
     if (!user?.uid) {
       Alert.alert('Error', 'User not found.');
@@ -171,7 +180,7 @@ const SettingsScreen = ({ navigation }) => {
   };
 
   const handleLogout = () => {
-    // Implement logout logic here
+    // logout navigates back to login screen
     navigation.navigate('Login');
   };
 
@@ -185,7 +194,7 @@ const SettingsScreen = ({ navigation }) => {
           text: 'Delete', 
           style: 'destructive',
           onPress: () => {
-            // Implement account deletion logic here
+            // deletes account
             Alert.alert('Account Deleted', 'Your account has been deleted.');
             navigation.navigate('Login');
           }

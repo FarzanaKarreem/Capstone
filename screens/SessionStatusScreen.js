@@ -1,3 +1,11 @@
+/**
+ * SessionStatusScreen screen
+ * 
+ * This screen displays the status of sessions for tutors. It fetches
+ * the sessions where the current user is a tutor and filters them based
+ * on their status (pending or accepted or completed) and date. Tutors can rate their 
+ * sessions after they are completed.
+ */
 import { arrayUnion, collection, doc, getDoc, getDocs, onSnapshot, query, updateDoc, where } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -133,7 +141,7 @@ const SessionStatusScreen = ({ navigation }) => {
     // Parse the timeSlot to get the start time
     const [startTime] = item.timeSlot.split('-').map(time => {
       const [hour] = time.split(':').map(Number);
-      return new Date(sessionDate.setHours(hour, 0, 0)); // Set the hours for the date object
+      return new Date(sessionDate.setHours(hour, 0, 0)); 
     });
   
     const isCompleted = sessionDate < now;

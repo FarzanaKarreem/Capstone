@@ -1,8 +1,17 @@
+/**
+ * SessionRequests 
+ * 
+ * This screen displays pending session requests for a tutor. It allows 
+ * tutors to accept or decline requests from students. The screen listens 
+ * for real-time updates using Firestore's onSnapshot method to reflect 
+ * changes immediately in the UI. It also handles the deletion of expired 
+ * requests based on the session date.
+ */ 
 import { collection, deleteDoc, doc, getDocs, onSnapshot, query, updateDoc, where } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { firestore } from '../firebase/firebaseConfig'; // Adjust the path as needed
-import { useUser } from '../screens/UserProvider'; // Adjust the path as needed
+import { firestore } from '../firebase/firebaseConfig';
+import { useUser } from '../screens/UserProvider';
 
 const SessionRequests = ({ navigation }) => {
   const { user } = useUser(); // Get current user from context
@@ -115,7 +124,7 @@ const SessionRequests = ({ navigation }) => {
     try {
         await deleteDoc(doc(firestore, 'sessions', requestId));
         Alert.alert("Declined", "Session request declined.");
-        // No need to set state here; onSnapshot will handle UI updates
+        //onSnapshot will handle UI updates
     } catch (error) {
         console.error("Error declining request: ", error);
         Alert.alert("Error", "Failed to decline the request.");
@@ -167,7 +176,7 @@ const SessionRequests = ({ navigation }) => {
     </View>
   );
 };
-
+//styles for session request screen
 const styles = StyleSheet.create({
   container: {
     flex: 1,

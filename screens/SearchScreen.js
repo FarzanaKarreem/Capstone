@@ -1,3 +1,11 @@
+/**
+ * SearchScreen Component
+ * 
+ * This screen  allows users to search for tutors based on their degree 
+ * and view suggested tutors who match using a matching algorithm based on the degree. 
+ * Users can input a module and receive a list of tutors 
+ * with their ratings, helping them find a suitable match
+ */ 
 import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -16,7 +24,7 @@ const SearchScreen = ({ route, navigation }) => {
         const tutorDoc = await getDoc(doc(firestore, 'users', tutorId));
         if (tutorDoc.exists()) {
           const tutorData = tutorDoc.data();
-          return tutorData.averageRating || 'No Rating';
+          return tutorData.averageRating || 'No Rating'; //displays the rating of the tutor 
         }
         return 'No Rating';
       } catch (error) {
@@ -25,6 +33,7 @@ const SearchScreen = ({ route, navigation }) => {
       }
     };
 
+    //Retrives the top 3 suggested tutors for this specific user depending on their degree
     const fetchSuggestedTutors = async () => {
       try {
         const studentDegree = user.degree.toLowerCase().trim();
@@ -120,7 +129,7 @@ const SearchScreen = ({ route, navigation }) => {
     </View>
   );
 };
-
+//styles for search screen
 const styles = StyleSheet.create({
   container: {
     flex: 1,
