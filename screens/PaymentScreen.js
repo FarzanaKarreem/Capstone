@@ -1,3 +1,9 @@
+/**
+ * PaymentScreen 
+ * 
+ * This allows tutors to manage the payment process for a tutoring session. 
+ * Users can select their preferred payment method(ash/snapscan/zapper) and it's updated in the session status in Firestore.
+ */ 
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { doc, updateDoc } from 'firebase/firestore';
 import React, { useState } from 'react';

@@ -1,6 +1,13 @@
-// screens/ReviewScreen.js
+/**
+ * ReviewScreen - rating stars used instead
+ * 
+ * This allows users to leave a review and rate their experience 
+ * with a tutor. Users can input a textual review and select a rating of 
+ * either 'good' or 'bad' using emoji buttons. Upon submission, the review 
+ * will be processed, and the user will be navigated back to the Home screen.
+ */
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, TouchableOpacity } from 'react-native';
+import { Button, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import styles from '../styles/styles';
 
 const ReviewScreen = ({ navigation }) => {
@@ -8,7 +15,7 @@ const ReviewScreen = ({ navigation }) => {
   const [rating, setRating] = useState('good'); // 'good' or 'bad'
 
   const handleReviewSubmit = () => {
-    // Submit review logic here
+    //testing
     navigation.navigate('Home');
   };
 

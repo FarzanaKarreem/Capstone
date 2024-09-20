@@ -1,8 +1,16 @@
+/**
+ * RequestScreen 
+ * 
+ * This screen allows students to request a tutoring session with a selected tutor.
+ * Users can specify the module, select a date, choose a time slot, and provide additional 
+ * details about their request. The screen includes modals for selecting time slots and 
+ * confirming the request submission.
+ */ 
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { firestore } from '../firebase/firebaseConfig'; // Adjust the path according to your file structure
+import { firestore } from '../firebase/firebaseConfig';
 import { useUser } from '../screens/UserProvider';
 
 const RequestScreen = ({ route, navigation }) => {
@@ -18,6 +26,7 @@ const RequestScreen = ({ route, navigation }) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
 
+  //timeSlots
   const allTimeSlots = [
     '8:00 AM - 9:00 AM',
     '9:00 AM - 10:00 AM',
@@ -108,7 +117,7 @@ const RequestScreen = ({ route, navigation }) => {
             mode="date"
             display="default"
             onChange={onChangeDate}
-            minimumDate={new Date(new Date().setDate(new Date().getDate() + 1))} // Minimum date is tomorrow
+            minimumDate={new Date(new Date().setDate(new Date().getDate() + 1))} // next  date is tomorrow
           />
         )}
 
@@ -191,7 +200,7 @@ const RequestScreen = ({ route, navigation }) => {
     </KeyboardAvoidingView>
   );
 };
-
+//styles for request screen
 const styles = StyleSheet.create({
   container: {
     flex: 1,

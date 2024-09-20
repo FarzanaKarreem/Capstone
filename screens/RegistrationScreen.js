@@ -1,3 +1,9 @@
+/**
+ * RegistrationScreen Component
+ * 
+ * This allows users the option to register as either a Student or a Tutor.
+ * It has buttons that navigate to the respective registration screens when selected.
+ */ 
 import React from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -37,42 +43,42 @@ const styles = StyleSheet.create({
     padding: 20,
     justifyContent: 'flex-start',
     alignItems: 'center',
-    backgroundColor: '#f0f4f8', // Match TutorHomeScreen background
+    backgroundColor: '#f0f4f8', 
   },
   title: {
-    fontSize: 28, // Match TutorHomeScreen title size
+    fontSize: 28, 
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 20,
-    fontFamily: 'Avenir', // Match TutorHomeScreen font
+    fontFamily: 'Avenir', 
   },
   optionContainer: {
     alignItems: 'center',
     marginVertical: 15,
-    backgroundColor: '#ADD8E6', // Light blue background color
+    backgroundColor: '#ADD8E6', 
     paddingVertical: 15,
     paddingHorizontal: 30,
     borderRadius: 10,
-    width: '80%', // Adjust width to fit the content
+    width: '80%', 
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 5,
-    elevation: 3, // Add shadow for Android
+    elevation: 3, 
     marginTop: 50,
     marginBottom:50,
   },
   image: {
-    width: 250, // Match TutorHomeScreen icon width
-    height: 100, // Match TutorHomeScreen icon height
+    width: 250, 
+    height: 100, 
     borderRadius: 10,
     marginBottom: 10,
   },
   buttonText: {
     fontSize: 18,
-    color: '#fff', // White text color for contrast
+    color: '#fff', 
     fontWeight: 'bold',
-    fontFamily: 'Avenir', // Match TutorHomeScreen font
+    fontFamily: 'Avenir', 
   },
 });
 
