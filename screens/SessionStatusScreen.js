@@ -27,21 +27,24 @@ const SessionStatusScreen = ({ navigation }) => {
         const sessionDate = new Date(sessionData.sessionDate.toDate ? sessionData.sessionDate.toDate() : sessionData.sessionDate);
         const now = new Date();
 
-        // Filter out sessions based on status and date
-        if (sessionData.status !== 'paid' && !(sessionData.status === 'pending' && sessionDate > now)) {
-          fetchedSessions.push({ id: doc.id, ...sessionData });
-        }
+        // Include pending sessions and filter out completed ones
+        if (
+      sessionData.status === 'pending' ||
+      (sessionData.status === 'accepted' && sessionDate >= now)
+    ) {
+      fetchedSessions.push({ id: doc.id, ...sessionData });
+    }
       });
 
       // Sort sessions: first by whether they are eligible for rating, then by date (most recent first)
       const sortedSessions = fetchedSessions.sort((a, b) => {
-        const now = new Date();
         const aDate = a.sessionDate.toDate ? a.sessionDate.toDate() : a.sessionDate;
         const bDate = b.sessionDate.toDate ? b.sessionDate.toDate() : b.sessionDate;
+        const now = new Date();
 
         // Check if sessions are eligible for rating
-        const aEligible = (aDate < now && !a.studentRating) || a.status === 'accepted';
-        const bEligible = (bDate < now && !b.studentRating) || b.status === 'accepted';
+        const aEligible = (aDate < now && !a.tutorRating) || a.status === 'accepted';
+        const bEligible = (bDate < now && !b.tutorRating) || b.status === 'accepted';
 
         // Sort eligible ratings first, then by date
         if (aEligible && !bEligible) return -1;
@@ -126,16 +129,27 @@ const SessionStatusScreen = ({ navigation }) => {
   const renderItem = (item) => {
     const now = new Date();
     const sessionDate = new Date(item.sessionDate.toDate ? item.sessionDate.toDate() : item.sessionDate);
+    
+    // Parse the timeSlot to get the start time
+    const [startTime] = item.timeSlot.split('-').map(time => {
+      const [hour] = time.split(':').map(Number);
+      return new Date(sessionDate.setHours(hour, 0, 0)); // Set the hours for the date object
+    });
+  
     const isCompleted = sessionDate < now;
-
+  
+    // Set status based on whether the session is completed or accepted
+    const status = isCompleted ? 'Completed' : item.status;
+  
     return (
       <View key={item.id} style={styles.card}>
         <Text style={styles.studentText}>Student: {item.studentId}</Text>
         <Text style={styles.cardContent}>Date: {sessionDate.toDateString()}</Text>
         <Text style={styles.cardContent}>Time: {item.timeSlot}</Text>
-        <Text style={styles.status}>Status: {item.status}</Text>
-
-        {(item.status === 'accepted' || isCompleted) && !item.studentRating && (
+        <Text style={styles.status}>Status: {status}</Text>
+  
+        {/* Show rate button only for completed sessions */}
+        {isCompleted && !item.tutorRating && (
           <TouchableOpacity
             style={styles.rateButton}
             onPress={() => {
@@ -258,17 +272,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 20,
     marginBottom: 20,
+    textAlign: 'center',
+    color: '#333',
+    fontFamily: 'Avenir',
   },
   ratingContainer: {
     flexDirection: 'row',
     marginBottom: 20,
   },
   star: {
-    fontSize: 30,
-    margin: 5,
-    color: '#f5c518',
+    fontSize: 40,
+    color: '#FFD700',
+    marginHorizontal: 5,
   },
   submitButton: {
     backgroundColor: '#007bff',

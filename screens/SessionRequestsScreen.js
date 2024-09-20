@@ -18,7 +18,6 @@ const SessionRequests = ({ navigation }) => {
     const fetchRequests = async () => {
       setLoading(true);
       try {
-        const now = new Date();
         const q = query(
           collection(firestore, 'sessions'),
           where('tutorId', '==', user.studentNum),
@@ -30,23 +29,12 @@ const SessionRequests = ({ navigation }) => {
             querySnapshot.docs.map(async (doc) => {
               const sessionData = { id: doc.id, ...doc.data() };
               const averageRating = await fetchAverageRating(sessionData.studentId);
-              
-              // Filter out requests with past dates
-              const sessionDate = sessionData.sessionDate ? sessionData.sessionDate.toDate() : null;
-              if (sessionDate && sessionDate >= now) {
-                return { ...sessionData, averageRating };
-              } else {
-                // If the request is expired, delete it
-                await deleteDoc(doc.ref);
-                return null;
-              }
+              return { ...sessionData, averageRating };
             })
           );
 
-          // Remove null values from the array
-          const validRequests = fetchedRequests.filter(request => request !== null);
-
-          setRequests(validRequests);
+          setRequests(fetchedRequests);
+          await deleteExpiredRequests(fetchedRequests); // Check for expired requests
           setLoading(false);
         });
 
@@ -78,21 +66,38 @@ const SessionRequests = ({ navigation }) => {
     return null;
   };
 
-  const handleAccept = async (request) => {
-    try {
-      const requestRef = doc(firestore, 'sessions', request.id);
-      await updateDoc(requestRef, { status: 'accepted' });
-      Alert.alert("Success", "Session request accepted.");
-      navigation.navigate('Chat', {
-        request,
-        tutorId: user.studentNum,
-        studentId: request.studentId
-      });
-    } catch (error) {
-      console.error("Error accepting request: ", error);
-      Alert.alert("Error", "Failed to accept the request.");
+  const deleteExpiredRequests = async (requests) => {
+    const now = new Date();
+    for (const request of requests) {
+      const sessionDate = request.sessionDate ? request.sessionDate.toDate() : null; // Ensure sessionDate is a Date object
+      if (sessionDate && sessionDate < now) {
+        try {
+          await deleteDoc(doc(firestore, 'sessions', request.id));
+          console.log(`Deleted expired request: ${request.id}`);
+        } catch (error) {
+          console.error("Error deleting expired request: ", error);
+        }
+      }
     }
   };
+
+  const handleAccept = async (request) => {
+    try {
+        const requestRef = doc(firestore, 'sessions', request.id);
+        await updateDoc(requestRef, { status: 'accepted' });
+        Alert.alert("Success", "Session request accepted.");
+        // Navigate to chat screen
+        navigation.navigate('Chat', {
+            request,
+            tutorId: user.studentNum,
+            studentId: request.studentId
+        });
+    } catch (error) {
+        console.error("Error accepting request: ", error);
+        Alert.alert("Error", "Failed to accept the request.");
+    }
+  };
+
 
   const handleDecline = (requestId) => {
     Alert.alert(
@@ -108,11 +113,12 @@ const SessionRequests = ({ navigation }) => {
 
   const declineRequest = async (requestId) => {
     try {
-      await deleteDoc(doc(firestore, 'sessions', requestId));
-      Alert.alert("Declined", "Session request declined.");
+        await deleteDoc(doc(firestore, 'sessions', requestId));
+        Alert.alert("Declined", "Session request declined.");
+        // No need to set state here; onSnapshot will handle UI updates
     } catch (error) {
-      console.error("Error declining request: ", error);
-      Alert.alert("Error", "Failed to decline the request.");
+        console.error("Error declining request: ", error);
+        Alert.alert("Error", "Failed to decline the request.");
     }
   };
 
