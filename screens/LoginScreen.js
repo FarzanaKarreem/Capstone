@@ -1,7 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { Alert, Image, Text, TextInput, TouchableOpacity, View, StyleSheet, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
+/**
+ * LoginScreen Component
+ * 
+ * This component allows users (students and tutors) to log in to the application. 
+ * It includes a role selection feature, input fields for email and password, and 
+ * handles authentication using Firebase.
+ */
+
 import { signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
+import React, { useEffect, useState } from 'react';
+import { Alert, Image, Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { auth, firestore } from '../firebase/firebaseConfig';
 
 const LoginScreen = ({ navigation }) => {
@@ -65,8 +73,8 @@ const LoginScreen = ({ navigation }) => {
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <Image 
-        source={require('../assets/uctlogo.png')}  // Path to the logo
-        style={styles.logo}  // Add a style for the logo
+        source={require('../assets/uctlogo.png')}  
+        style={styles.logo} 
       />
       <Text style={styles.title}>UCT Tutor Login</Text>
       <View style={styles.roleSelectionContainer}>
@@ -113,7 +121,7 @@ const LoginScreen = ({ navigation }) => {
     </KeyboardAvoidingView>
   );
 };
-
+//styles for login screen
 const styles = StyleSheet.create({
   container: {
     flex: 1,

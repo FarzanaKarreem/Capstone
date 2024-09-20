@@ -1,6 +1,9 @@
+/*TutorHomeScreen 
+ displays a welcome message and options for tutors, including navigation to search for tutors, view sessions, and access chats. 
+ It checks user loading state and handles logout confirmation.*/
 import React, { useLayoutEffect } from 'react';
 import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { useUser } from '../screens/UserProvider'; // Import the user context
+import { useUser } from '../screens/UserProvider';
 
 const TutorHomeScreen = ({ navigation }) => {
   const { user, loading } = useUser(); // Get user data and loading state from context
@@ -46,15 +49,15 @@ const TutorHomeScreen = ({ navigation }) => {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerStyle: {
-        backgroundColor: '#87CEEB', // Add a background color
-        shadowColor: 'transparent', // Remove the bottom shadow
-        elevation: 0, // Remove shadow for Android
+        backgroundColor: '#87CEEB', 
+        shadowColor: 'transparent', 
+        elevation: 0, 
       },
       headerTitleStyle: {
         fontWeight: 'bold',
         fontSize: 20,
-        color: '#fff', // Change the title color to white
-        fontFamily: 'Avenir', // Use a custom font if available
+        color: '#fff', 
+        fontFamily: 'Avenir', 
       },
       headerLeft: () => (
         <TouchableOpacity
@@ -76,13 +79,13 @@ const TutorHomeScreen = ({ navigation }) => {
   }, [navigation, user]);
   
 
-  // Main content when the user is available
+  
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome, {user.name}!</Text>
       <Text style={styles.subTitle}>Your role: {user.role}</Text>
 
-      {/* Add an image above the search button */}
+      {/* image for serach */}
       <TouchableOpacity onPress={() => navigation.navigate('Search', { user})}>
       <Image source={require('../assets/requests.png')} style={styles.icon} />
       </TouchableOpacity>
@@ -90,7 +93,7 @@ const TutorHomeScreen = ({ navigation }) => {
         <Text style={styles.buttonText}>Search for Tutors</Text>
       </TouchableOpacity>
 
-      {/* Add an image above the sessions button */}
+      {/* image for sessions*/}
       <TouchableOpacity onPress={() => navigation.navigate('StudentSessionStatus', { user })}>
       <Image source={require('../assets/sessions.png')} style={styles.icon} />
       </TouchableOpacity>
@@ -98,7 +101,7 @@ const TutorHomeScreen = ({ navigation }) => {
         <Text style={styles.buttonText}>My Sessions</Text>
       </TouchableOpacity>
 
-      {/* Add an image above the chats button */}
+      {/* image added chats */}
       <TouchableOpacity onPress={() => navigation.navigate('AllStudentChats', { user })}>
       <Image source={require('../assets/chats.png')} style={styles.icon} />
       </TouchableOpacity>
@@ -116,39 +119,39 @@ const TutorHomeScreen = ({ navigation }) => {
   );
 };
 
-// Styles for the component
+// Styles for the HomeScreen
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
     justifyContent: 'flex-start',
     alignItems: 'center',
-    backgroundColor: '#f0f4f8', // Light background color
+    backgroundColor: '#f0f4f8', 
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 10,
-    fontFamily: 'Avenir', // Custom font
+    fontFamily: 'Avenir', 
   },
   subTitle: {
     fontSize: 20,
     color: '#555',
-    marginBottom: 20, // Reduce margin to move content up
+    marginBottom: 20, 
   },
   button: {
-    backgroundColor: '#ADD8E6', // Light blue button
+    backgroundColor: '#ADD8E6', 
     padding: 15,
     borderRadius: 10,
-    marginVertical: 10, // Slight margin around the buttons
+    marginVertical: 10, 
     width: '72%',
     alignItems: 'center',
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 5,
-    elevation: 3, // Add shadow for Android
+    elevation: 3, 
     marginTop: -15,
     marginBottom: 34,
   },
@@ -159,8 +162,8 @@ const styles = StyleSheet.create({
   },
   helpButton: {
     position: 'absolute',
-    bottom: 30, // Move the help button lower
-    backgroundColor: '#90EE90', // Light green color
+    bottom: 30, 
+    backgroundColor: '#90EE90', 
     padding: 15,
     borderRadius: 10,
     width: '80%',
@@ -174,7 +177,7 @@ const styles = StyleSheet.create({
   icon: {
     width: 250,
     height: 100,
-    marginBottom: 15, // Add space between image and button
+    marginBottom: 15, 
   },
   loadingText: {
     fontSize: 18,
@@ -182,7 +185,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 18,
-    color: '#d9534f', // Red for error messages
+    color: '#d9534f', 
   },
 });
 

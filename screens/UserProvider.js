@@ -1,7 +1,7 @@
 // UserProvider.js
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { doc, getDoc } from 'firebase/firestore';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { auth, firestore } from '../firebase/firebaseConfig';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
 
 const UserContext = createContext();
 
@@ -28,7 +28,7 @@ export const UserProvider = ({ children }) => {
       setLoading(false);
     });
 
-    return unsubscribe; // cleanup on component unmount
+    return unsubscribe; // cleanup 
   }, []);
 
   return (
