@@ -1,3 +1,11 @@
+/*
+  Chat Screen
+Allows real-time messaging between tutors and students for a session, where the messages are appended to the Firestore messages array
+It integrates Firebase Firestore to create or access a unique chat document using the tutorId and studentId as the chat ID
+onSnapshot to handle real-time updates
+
+*/
+
 import { arrayUnion, doc, getDoc, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, FlatList, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -12,10 +20,11 @@ const Chat = ({ route }) => {
   const [loading, setLoading] = useState(true);
   const [sessionDetails, setSessionDetails] = useState(null);
 
+  // Fetches chat messages from Firestore or creates a new chat document if it doesn't exist.
   useEffect(() => {
     const chatId = `${tutorId}_${studentId}`;
     const chatDocRef = doc(firestore, 'chats', chatId);
-
+// Retrieves or initializes chat messages and session details from Firestore.
     const fetchMessages = async () => {
       try {
         const chatDocSnap = await getDoc(chatDocRef);
@@ -59,7 +68,7 @@ const Chat = ({ route }) => {
 
     fetchMessages();
   }, [request, tutorId, studentId, user.studentNum]);
-
+ // Sends a new message by updating the Firestore 'chats' document.
   const handleSendMessage = async () => {
     if (newMessage.trim() === '') {
       Alert.alert("Error", "Message cannot be empty.");
@@ -84,7 +93,7 @@ const Chat = ({ route }) => {
       Alert.alert("Error", "Failed to send message.");
     }
   };
-
+// Renders each chat message in the UI with sender/receiver identification and timestamp.
   const renderItem = ({ item }) => (
     <View style={[styles.messageContainer, item.senderId === user.studentNum ? styles.userMessage : styles.tutorMessage]}>
       <Text style={styles.senderName}>{item.senderId}</Text>
@@ -105,7 +114,7 @@ const Chat = ({ route }) => {
     <KeyboardAvoidingView 
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0} // Adjust this value if needed
+      keyboardVerticalOffset={Platform.OS === "ios" ? 100 : 0} 
     >
       <View style={styles.sessionDetails}>
         <Text style={styles.sessionDetailText}>Module: {sessionDetails?.module}</Text>
@@ -136,7 +145,7 @@ const Chat = ({ route }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f4f4f9', // Light background color
+    backgroundColor: '#f4f4f9', 
     padding: 10,
   },
   loadingContainer: {
