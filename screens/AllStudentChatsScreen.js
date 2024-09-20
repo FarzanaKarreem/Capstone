@@ -1,3 +1,11 @@
+/**
+ * AllStudentChatsScreen 
+ * 
+ * This screen displays all chat sessions for the student that is logged in. It fetches the data from the Firestore database and retrieves relevant 
+ * tutor information such as the student's name and profile picture and session details.
+ * The student can click on any session to go to the chat screen with a specific student
+ * The data is fetched using firestore and a snapshot listener which listens for real time updates
+ */
 import { collection, getDocs, onSnapshot, query, where } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -8,7 +16,7 @@ const AllStudentChatsScreen = ({ navigation }) => {
   const { user } = useUser();
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
-
+//fetches the data to populate the screen
   useEffect(() => {
     if (!user) return;
 
@@ -40,7 +48,7 @@ const AllStudentChatsScreen = ({ navigation }) => {
 
     return () => unsubscribe();
   }, [user]);
-
+//Navigates to the chat with a specific tutor
   const handleChatPress = (session) => {
     navigation.navigate('Chat', {
       request: session,
@@ -48,7 +56,7 @@ const AllStudentChatsScreen = ({ navigation }) => {
       studentId: user.studentNum,
     });
   };
-
+//displays the details on the AllStudentChatsScreen such as the users profile picture, name and other session details
   const renderSessionItem = ({ item }) => (
     <TouchableOpacity style={styles.chatItem} onPress={() => handleChatPress(item)}>
       <Image

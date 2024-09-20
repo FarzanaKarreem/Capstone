@@ -1,3 +1,11 @@
+/**
+ * AllChatsScreen 
+ * 
+ * This screen displays all chat sessions for the tutor that is logged in. It fetches the data from the Firestore database and retrieves relevant 
+ * student information such as the student's name and profile picture and session details. 
+ * The tutor can click on any session to go to the chat screen with a specific student
+ * The data is fetched using firestore and a snapshot listener which listens for real time updates
+ */
 import { collection, getDocs, onSnapshot, query, where } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -9,6 +17,7 @@ const AllChatsScreen = ({ navigation }) => {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  //fetches the data to populate the screen
   useEffect(() => {
     if (!user) return;
 
@@ -22,7 +31,7 @@ const AllChatsScreen = ({ navigation }) => {
       const fetchedSessions = [];
       for (const doc of querySnapshot.docs) {
         const sessionData = { id: doc.id, ...doc.data() };
-        // Fetch user data for each session
+        
         const userDoc = await getDocs(query(collection(firestore, 'users'), where('studentNum', '==', sessionData.studentId)));
         if (!userDoc.empty) {
           const userData = userDoc.docs[0].data();
@@ -41,6 +50,7 @@ const AllChatsScreen = ({ navigation }) => {
     return () => unsubscribe();
   }, [user]);
 
+  //Navigates to the chat with a specific student
   const handleChatPress = (session) => {
     navigation.navigate('Chat', {
       request: session,
@@ -49,6 +59,7 @@ const AllChatsScreen = ({ navigation }) => {
     });
   };
 
+  //displays the details on the AllChatsScreen such as the users profile picture, name and other session details
   const renderSessionItem = ({ item }) => (
     <TouchableOpacity style={styles.chatItem} onPress={() => handleChatPress(item)}>
       <Image
@@ -83,6 +94,7 @@ const AllChatsScreen = ({ navigation }) => {
   );
 };
 
+//Styles for the AllChatScreens
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -97,18 +109,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   avatar: {
-    width: 70,  // Increased from 50 to 70
-    height: 70, // Increased from 50 to 70
-    borderRadius: 35, // Half of the width/height
+    width: 70,  
+    height: 70, 
+    borderRadius: 35, 
     marginRight: 15,
   },
   chatSummary: {
     flex: 1,
-    justifyContent: 'center', // Added to vertically center the text
+    justifyContent: 'center',
   },
   studentName: {
     fontFamily: 'System',
-    fontSize: 18, // Slightly increased from 16 to 18
+    fontSize: 18, 
     fontWeight: 'bold',
     color: '#333333',
     marginBottom: 4,
