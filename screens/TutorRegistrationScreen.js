@@ -1,9 +1,22 @@
+/**
+ * TutorRegistrationScreen 
+ * 
+ * This screen provides a registration form for tutors to create an account.
+ * 
+ * Features:
+ * - Input fields for personal information (name, surname, student number, email, degree, year of study, bio, password).
+ * - Option to upload a transcript using Document Picker.
+ * - Modal for accepting Terms and Conditions before registration.
+ * - Integration with Firebase Authentication for user registration.
+ * - Storing additional user information in Firestore under the 'users' collection.
+ */
+
 import * as DocumentPicker from 'expo-document-picker';
 import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import React, { useState } from 'react';
 import { Alert, Modal, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { auth, firestore } from '../firebase/firebaseConfig'; // Ensure proper imports
+import { auth, firestore } from '../firebase/firebaseConfig';
 
 const TutorRegistrationScreen = ({ navigation }) => {
   const [name, setName] = useState('');
@@ -53,12 +66,12 @@ const TutorRegistrationScreen = ({ navigation }) => {
       return;
     }
   
-    // Show the T&Cs modal
+    // Show the T&Cs 
     setTermsVisible(true);
   };
 
   const handleTermsAccept = async () => {
-    setTermsVisible(false); // Hide T&Cs modal
+    setTermsVisible(false); // Hide T&Cs 
 
     try {
       // Register tutor with Firebase Auth
@@ -238,25 +251,25 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#f5f5f5', // Light grey background
+    backgroundColor: '#f5f5f5', 
   },
   title: {
     fontSize: 24,
-    fontFamily: 'Avenir', // Ensure consistent font family
-    color: '#333', // Dark grey text color
+    fontFamily: 'Avenir', 
+    color: '#333', 
     marginBottom: 20,
   },
   input: {
     borderBottomWidth: 1,
-    borderBottomColor: '#ddd', // Light grey border
+    borderBottomColor: '#ddd', 
     marginBottom: 15,
     padding: 8,
     fontSize: 16,
-    fontFamily: 'Avenir', // Ensure consistent font family
-    color: '#333', // Dark grey text color
+    fontFamily: 'Avenir', 
+    color: '#333', 
   },
   button: {
-    backgroundColor: '#ADD8E8', // Primary blue color
+    backgroundColor: '#ADD8E8', 
     padding: 15,
     marginTop: 20,
     borderRadius: 5,
@@ -265,18 +278,18 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontSize: 18,
-    fontFamily: 'Avenir', // Ensure consistent font family
+    fontFamily: 'Avenir', 
   },
   image: {
     marginTop: 10,
-    fontFamily: 'Avenir', // Ensure consistent font family
-    color: '#333', // Dark grey text color
+    fontFamily: 'Avenir', 
+    color: '#333', 
   },
   verified: {
     color: 'green',
     marginTop: 10,
     fontSize: 18,
-    fontFamily: 'Avenir', // Ensure consistent font family
+    fontFamily: 'Avenir', 
   },
   modalContainer: {
     flex: 1,
@@ -293,12 +306,12 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 18,
-    fontFamily: 'Avenir', // Ensure consistent font family
-    color: '#333', // Dark grey text color
+    fontFamily: 'Avenir', 
+    color: '#333', 
     marginBottom: 15,
   },
   modalButton: {
-    backgroundColor: '#ADD8E8', // Primary blue color
+    backgroundColor: '#ADD8E8', 
     padding: 10,
     marginVertical: 5,
     borderRadius: 5,
@@ -308,15 +321,15 @@ const styles = StyleSheet.create({
   modalButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontFamily: 'Avenir', // Ensure consistent font family
+    fontFamily: 'Avenir', 
   },
   modalCloseButton: {
     marginTop: 15,
   },
   modalCloseButtonText: {
-    color: '#ADD8E8', // Primary blue color
+    color: '#ADD8E8', 
     fontSize: 16,
-    fontFamily: 'Avenir', // Ensure consistent font family
+    fontFamily: 'Avenir', 
   },
   transcriptContainer: {
     flexDirection: 'row',
@@ -329,8 +342,8 @@ const styles = StyleSheet.create({
   },
   modalText: {
     fontSize: 16,
-    fontFamily: 'Avenir', // Ensure consistent font family
-    color: '#333', // Dark grey text color
+    fontFamily: 'Avenir', 
+    color: '#333', 
   },
   modalButtons: {
     flexDirection: 'column',

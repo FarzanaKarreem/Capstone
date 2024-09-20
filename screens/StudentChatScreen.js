@@ -1,3 +1,4 @@
+//bakcup screen in case chat screen didn't work for both tutor and student 
 import React, { useEffect, useRef, useState } from 'react';
 import { Button, FlatList, Keyboard, KeyboardAvoidingView, Platform, StyleSheet, Text, TextInput, TouchableWithoutFeedback, View } from 'react-native';
 
@@ -35,7 +36,7 @@ const StudentChatScreen = ({ route, navigation }) => {
     </View>
   );
 
-  // Pre-populate messages with the last message from the tutor if available
+  
   useEffect(() => {
     if (request.lastMessage) {
       setMessages([{ id: 'lastMessage', text: request.lastMessage, sender: 'Tutor' }]);
@@ -46,7 +47,7 @@ const StudentChatScreen = ({ route, navigation }) => {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0} // Adjust offset as needed
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0} 
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.innerContainer}>

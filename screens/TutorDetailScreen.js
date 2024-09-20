@@ -1,6 +1,15 @@
+/**
+ * TutorDetailScreen 
+ *
+ * This screen displays detailed information about a selected tutor, including
+ * their name, degree, biography, availability, and verification status.
+ * It also shows the tutor's average rating, if available, and provides a button
+ * for students to book a session with the tutor.
+ */
+
 import React, { useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import Icon from 'react-native-vector-icons/FontAwesome'; // Import FontAwesome icons
+import Icon from 'react-native-vector-icons/FontAwesome';
 
 const TutorDetailScreen = ({ route, navigation }) => {
   const { tutor } = route.params;

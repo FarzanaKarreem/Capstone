@@ -1,3 +1,20 @@
+/**
+ * StudentRegistrationScreen 
+ *
+ * This screen handles the registration process for students in the app.
+ * It collects user information such as name, surname, student number, email,
+ * degree, year of study, bio, and password. The registration process involves:
+ *
+ * 1. Validating that all required fields are filled out.
+ * 2. Displaying a Terms and Conditions modal for user acceptance before 
+ *    completing the registration.
+ * 3. Creating a new user account with Firebase Authentication and sending a
+ *    verification email.
+ * 4. Storing additional user information in Firestore under the 'users' 
+ *    collection, designating the user as a 'student'.
+ * 5. Navigating to the Login screen upon successful registration.
+ */
+
 import { createUserWithEmailAndPassword, sendEmailVerification } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import React, { useState } from 'react';
@@ -25,12 +42,12 @@ const StudentRegistrationScreen = ({ navigation }) => {
       return;
     }
 
-    // Show the T&Cs modal
+    // Show the T&Cs 
     setTermsVisible(true);
   };
 
   const handleTermsAccept = async () => {
-    setTermsVisible(false); // Hide T&Cs modal
+    setTermsVisible(false); // Hide T&Cs 
 
     try {
       // Register student with Firebase Auth
@@ -191,52 +208,52 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#f5f5f5', // Light grey background
+    backgroundColor: '#f5f5f5', 
   },
   title: {
     fontSize: 24,
-    fontFamily: 'Avenir', // Ensure consistent font family
-    color: '#333', // Dark grey text color
+    fontFamily: 'Avenir', 
+    color: '#333', 
     marginBottom: 20,
   },
   input: {
     borderBottomWidth: 1,
-    borderBottomColor: '#ddd', // Light grey border
+    borderBottomColor: '#ddd', 
     marginBottom: 15,
     padding: 8,
     fontSize: 16,
-    fontFamily: 'Avenir', // Ensure consistent font family
-    color: '#333', // Dark grey text color
+    fontFamily: 'Avenir', 
+    color: '#333', 
   },
   inputText: {
-    color: '#333', // Dark grey text color
+    color: '#333', 
   },
   button: {
-    backgroundColor: '#ADD8E8', // Primary blue color
+    backgroundColor: '#ADD8E8', 
     padding: 15,
     marginTop: 20,
     borderRadius: 5,
     alignItems: 'center',
   },
   buttonText: {
-    color: '#fff', // White text color
+    color: '#fff', 
     fontSize: 18,
-    fontFamily: 'Avenir', // Ensure consistent font family
+    fontFamily: 'Avenir', 
   },
   modalView: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0,0,0,0.5)', // Dark semi-transparent background
+    backgroundColor: 'rgba(0,0,0,0.5)', 
   },
   modalTitle: {
     fontSize: 20,
-    fontFamily: 'Arial', // Ensure consistent font family
-    color: '#fff', // White text color
+    fontFamily: 'Arial', 
+    color: '#fff', 
     marginBottom: 20,
   },
   termsContainer: {
-    backgroundColor: '#fff', // White background
+    backgroundColor: '#fff', 
     padding: 20,
     borderRadius: 10,
     width: '80%',
@@ -244,8 +261,8 @@ const styles = StyleSheet.create({
   },
   modalText: {
     fontSize: 16,
-    fontFamily: 'Avenir', // Ensure consistent font family
-    color: '#333', // Dark grey text color
+    fontFamily: 'Avenir', 
+    color: '#333', 
   },
   modalButtons: {
     flexDirection: 'row',
@@ -254,30 +271,30 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   modalButton: {
-    backgroundColor: '#007bff', // Primary blue color
+    backgroundColor: '#007bff', 
     padding: 10,
     borderRadius: 5,
     width: '40%',
     alignItems: 'center',
   },
   modalButtonText: {
-    color: '#fff', // White text color
+    color: '#fff', 
     fontSize: 18,
-    fontFamily: 'Arial', // Ensure consistent font family
+    fontFamily: 'Arial', 
   },
   selectedButton: {
-    backgroundColor: '#0056b3', // Darker blue color for selected button
+    backgroundColor: '#0056b3', 
   },
   modalCloseButton: {
-    backgroundColor: '#ff4d4d', // Red color for close button
+    backgroundColor: '#ff4d4d', 
     padding: 10,
     borderRadius: 5,
     marginTop: 20,
   },
   modalCloseText: {
-    color: '#fff', // White text color
+    color: '#fff', 
     fontSize: 18,
-    fontFamily: 'Avenir', // Ensure consistent font family
+    fontFamily: 'Avenir', 
   }
 });
 

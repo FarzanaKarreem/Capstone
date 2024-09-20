@@ -1,6 +1,15 @@
+/**
+ * TutorListScreen 
+ *
+ * This screen displays a list of tutors filtered by the specified 
+ * module. It fetches tutor data from Firestore and displays their 
+ * details, including name, degree, bio, availability, verification status, 
+ * and average rating.
+ */
+
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'; // Added StyleSheet here
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { firestore } from '../firebase/firebaseConfig';
 
@@ -95,7 +104,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#f8f9fa', // Light background color
+    backgroundColor: '#f8f9fa', 
   },
   title: {
     fontSize: 26,
@@ -132,10 +141,10 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     borderWidth: 1,
     borderColor: '#ced4da',
-    shadowColor: '#000', // iOS shadow
+    shadowColor: '#000', 
     shadowOpacity: 0.1,
     shadowRadius: 5,
-    elevation: 2, // Android shadow
+    elevation: 2, 
   },
   cardTitle: {
     fontSize: 20,

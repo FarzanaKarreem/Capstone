@@ -1,3 +1,11 @@
+/**
+ * TutorHomeScreen 
+ *
+ * This screen serves as the home screen for tutors, displaying their 
+ * information and providing navigation to various functionalities such as 
+ * viewing sessions, managing requests, chatting, and accessing help.
+ */
+
 import React, { useLayoutEffect } from 'react';
 import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useUser } from '../screens/UserProvider'; // Import the user context
@@ -46,15 +54,15 @@ const TutorHomeScreen = ({ navigation }) => {
   useLayoutEffect(() => {
     navigation.setOptions({
       headerStyle: {
-        backgroundColor: '#87CEEB', // Add a background color
-        shadowColor: 'transparent', // Remove the bottom shadow
-        elevation: 0, // Remove shadow for Android
+        backgroundColor: '#87CEEB', 
+        shadowColor: 'transparent', 
+        elevation: 0, 
       },
       headerTitleStyle: {
         fontWeight: 'bold',
         fontSize: 20,
-        color: '#fff', // Change the title color to white
-        fontFamily: 'Avenir', // Use a custom font if available
+        color: '#fff', 
+        fontFamily: 'Avenir', 
       },
       headerLeft: () => (
         <TouchableOpacity
@@ -75,7 +83,7 @@ const TutorHomeScreen = ({ navigation }) => {
     });
   }, [navigation, user]);
 
-  // Main content when the user is available
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome, {user.name}!</Text>
@@ -116,39 +124,39 @@ const TutorHomeScreen = ({ navigation }) => {
   );
 };
 
-// Styles for the component
+// Styles for TutorHome
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
     justifyContent: 'flex-start',
     alignItems: 'center',
-    backgroundColor: '#f0f4f8', // Light background color
+    backgroundColor: '#f0f4f8', 
   },
   title: {
     fontSize: 28,
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 10,
-    fontFamily: 'Avenir', // Custom font
+    fontFamily: 'Avenir', 
   },
   subTitle: {
     fontSize: 20,
     color: '#555',
-    marginBottom: 20, // Reduce margin to move content up
+    marginBottom: 20, 
   },
   button: {
-    backgroundColor: '#ADD8E6', // Light blue button
+    backgroundColor: '#ADD8E6', 
     padding: 15,
     borderRadius: 10,
-    marginVertical: 10, // Slight margin around the buttons
+    marginVertical: 10, 
     width: '73%',
     alignItems: 'center',
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 5,
-    elevation: 3, // Add shadow for Android
+    elevation: 3, 
     marginTop: -15,
     marginBottom: 26,
   },
@@ -159,8 +167,8 @@ const styles = StyleSheet.create({
   },
   helpButton: {
     position: 'absolute',
-    bottom: 20, // Move the help button slightly higher from the bottom
-    backgroundColor: '#90EE90', // Light green color
+    bottom: 20, 
+    backgroundColor: '#90EE90', 
     padding: 15,
     borderRadius: 10,
     width: '80%',
@@ -174,7 +182,7 @@ const styles = StyleSheet.create({
   icon: {
     width: 250,
     height: 100,
-    marginBottom: 15, // Add space between image and button
+    marginBottom: 15, 
   },
   loadingText: {
     fontSize: 18,
@@ -182,7 +190,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 18,
-    color: '#d9534f', // Red for error messages
+    color: '#d9534f', 
   },
 });
 
