@@ -141,7 +141,7 @@ const Chat = ({ route }) => {
     </KeyboardAvoidingView>
   );
 };
-
+//styles for chat screen
 const styles = StyleSheet.create({
   container: {
     flex: 1,

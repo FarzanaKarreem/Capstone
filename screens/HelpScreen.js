@@ -1,23 +1,30 @@
+/* HelpScreen 
+It allows users to submit queries, with options to select query types and enter a message. 
+ It integrates Firestore to store help requests and uses a modal for selecting query types.
+ */
+
 import { addDoc, collection } from 'firebase/firestore';
 import React, { useState } from 'react';
 import {
-    Alert,
-    Modal,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Alert,
+  Modal,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import { firestore } from "../firebase/firebaseConfig";
 import { useUser } from './UserProvider';
 
 const HelpScreen = () => {
   const { user } = useUser();
+  // Manages the input state for the help message
   const [message, setMessage] = useState('');
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedQuery, setSelectedQuery] = useState('Select Query Type');
+  const [modalVisible, setModalVisible] = useState(false); // Tracks the visibility state 
+  const [selectedQuery, setSelectedQuery] = useState('Select Query Type'); // Tracks the selected query type .
+
 
   const queryOptions = [
     'Incident with another user',
@@ -26,6 +33,7 @@ const HelpScreen = () => {
     'Other',
   ];
 
+  // Sends the user's help request to Firestore
   const handleSendQuery = async () => {
     if (selectedQuery === 'Select Query Type' || !message.trim()) {
       Alert.alert('Error', 'Please fill in all fields.');
@@ -55,6 +63,7 @@ const HelpScreen = () => {
     setModalVisible(false);
   };
 
+  // Handles the selection of a query type 
   const handleSelectQuery = (query) => {
     setSelectedQuery(query);
     closeModal();
@@ -89,7 +98,7 @@ const HelpScreen = () => {
         <Text style={styles.buttonText}>Send</Text>
       </TouchableOpacity>
 
-      {/* Modal for the picker */}
+      {/* Modal picker */}
       <Modal
         visible={modalVisible}
         animationType="slide"
@@ -116,25 +125,25 @@ const HelpScreen = () => {
     </ScrollView>
   );
 };
-
+//Styles for help screen 
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
     padding: 20,
     justifyContent: 'center',
-    backgroundColor: '#e8f0f2', // Soft background color
+    backgroundColor: '#e8f0f2', 
   },
   title: {
     fontSize: 26,
     fontWeight: 'bold',
-    color: '#333', // Darker color for title
+    color: '#333', 
     marginBottom: 20,
-    fontFamily: 'Avenir', // Use Avenir font family
+    fontFamily: 'Avenir', 
   },
   label: {
     fontSize: 18,
     marginVertical: 5,
-    color: '#555', // Slightly lighter for labels
+    color: '#555', 
   },
   input: {
     borderWidth: 1,
@@ -143,7 +152,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 15,
     backgroundColor: '#fff',
-    fontFamily: 'Avenir', // Consistent font family
+    fontFamily: 'Avenir', 
   },
   messageInput: {
     borderWidth: 1,
@@ -154,10 +163,10 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     backgroundColor: '#fff',
     textAlignVertical: 'top',
-    fontFamily: 'Avenir', // Consistent font family
+    fontFamily: 'Avenir', 
   },
   button: {
-    backgroundColor: '#007bff', // Blue color for button
+    backgroundColor: '#007bff', 
     padding: 15,
     borderRadius: 10,
     alignItems: 'center',
