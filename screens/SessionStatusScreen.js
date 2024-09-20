@@ -4,8 +4,8 @@ import { ActivityIndicator, Alert, Modal, ScrollView, StyleSheet, Text, Touchabl
 import { firestore } from '../firebase/firebaseConfig';
 import { useUser } from './UserProvider';
 
-const SessionStatusScreen = () => {
-  const { user } = useUser(); // Get user data from context
+const SessionStatusScreen = ({ navigation }) => {
+  const { user } = useUser();
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [ratingModalVisible, setRatingModalVisible] = useState(false);
@@ -17,15 +17,39 @@ const SessionStatusScreen = () => {
 
     const q = query(
       collection(firestore, 'sessions'),
-      where('tutorId', '==', user.studentNum) // Change to filter by tutorId
+      where('tutorId', '==', user.studentNum)
     );
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const fetchedSessions = [];
       querySnapshot.forEach((doc) => {
-        fetchedSessions.push({ id: doc.id, ...doc.data() });
+        const sessionData = doc.data();
+        const sessionDate = new Date(sessionData.sessionDate.toDate ? sessionData.sessionDate.toDate() : sessionData.sessionDate);
+        const now = new Date();
+
+        // Filter out sessions based on status and date
+        if (sessionData.status !== 'paid' && !(sessionData.status === 'pending' && sessionDate > now)) {
+          fetchedSessions.push({ id: doc.id, ...sessionData });
+        }
       });
-      setSessions(fetchedSessions);
+
+      // Sort sessions: first by whether they are eligible for rating, then by date (most recent first)
+      const sortedSessions = fetchedSessions.sort((a, b) => {
+        const now = new Date();
+        const aDate = a.sessionDate.toDate ? a.sessionDate.toDate() : a.sessionDate;
+        const bDate = b.sessionDate.toDate ? b.sessionDate.toDate() : b.sessionDate;
+
+        // Check if sessions are eligible for rating
+        const aEligible = (aDate < now && !a.studentRating) || a.status === 'accepted';
+        const bEligible = (bDate < now && !b.studentRating) || b.status === 'accepted';
+
+        // Sort eligible ratings first, then by date
+        if (aEligible && !bEligible) return -1;
+        if (!aEligible && bEligible) return 1;
+        return bDate - aDate; // Most recent first
+      });
+
+      setSessions(sortedSessions);
       setLoading(false);
     }, (error) => {
       console.error("Error fetching sessions: ", error);
@@ -44,60 +68,61 @@ const SessionStatusScreen = () => {
           Alert.alert("Error", "Session document not found.");
           return;
         }
-        
+
         const sessionData = sessionDoc.data();
         const studentStudentNum = sessionData.studentId;
-  
+
         const usersRef = collection(firestore, 'users');
         const q = query(usersRef, where('studentNum', '==', studentStudentNum));
         const querySnapshot = await getDocs(q);
-  
+
         if (!querySnapshot.empty) {
           const studentDoc = querySnapshot.docs[0];
           const studentData = studentDoc.data();
-  
-          // Ensure ratings array exists
+
           if (!studentData.ratings) {
-            console.log('Initializing ratings array');
             await updateDoc(studentDoc.ref, { ratings: [] });
           }
-  
+
           await updateDoc(studentDoc.ref, {
             ratings: arrayUnion(rating),
           });
-  
+
           const updatedStudentDoc = await getDoc(studentDoc.ref);
           const updatedStudentData = updatedStudentDoc.data();
           const updatedRatings = updatedStudentData.ratings || [];
           const newAverageRating = updatedRatings.reduce((a, b) => a + b, 0) / updatedRatings.length;
-  
+
           await updateDoc(studentDoc.ref, {
             averageRating: newAverageRating,
           });
-  
+
           await updateDoc(sessionRef, { tutorRating: rating });
-  
+
+          // Remove session from displayed list after rating
+          setSessions(prevSessions => prevSessions.filter(session => session.id !== currentSessionId));
+
           Alert.alert('Success', 'Your rating has been successfully submitted!', [
-            { text: 'OK', onPress: () => {
+            { 
+              text: 'OK', 
+              onPress: () => {
                 setRatingModalVisible(false);
                 setRating(0);
-                NavigationPreloadManager.navi
+                navigation.navigate('Payment', { sessionId: currentSessionId });
               }
             },
           ]);
         } else {
-          console.error("No student document found for studentNum:", studentStudentNum);
           Alert.alert("Error", "The student for this session does not exist.");
         }
       } catch (error) {
-        console.error("Error updating rating: ", error);
         Alert.alert("Error", "There was an issue submitting your rating. Please try again.");
       }
     } else {
       Alert.alert("Error", "Please select a rating before submitting.");
     }
   };
-  
+
   const renderItem = (item) => {
     const now = new Date();
     const sessionDate = new Date(item.sessionDate.toDate ? item.sessionDate.toDate() : item.sessionDate);
@@ -110,7 +135,7 @@ const SessionStatusScreen = () => {
         <Text style={styles.cardContent}>Time: {item.timeSlot}</Text>
         <Text style={styles.status}>Status: {item.status}</Text>
 
-        {isCompleted && !item.studentRating && (
+        {(item.status === 'accepted' || isCompleted) && !item.studentRating && (
           <TouchableOpacity
             style={styles.rateButton}
             onPress={() => {
@@ -227,34 +252,34 @@ const styles = StyleSheet.create({
   modalContent: {
     backgroundColor: '#fff',
     padding: 20,
-    borderRadius: 8,
+    borderRadius: 10,
     width: '80%',
+    maxWidth: 400,
+    alignItems: 'center',
   },
   modalTitle: {
     fontSize: 18,
-    fontWeight: 'bold',
     marginBottom: 20,
-    fontFamily: 'Avenir',
   },
   ratingContainer: {
     flexDirection: 'row',
-    justifyContent: 'center',
     marginBottom: 20,
   },
   star: {
     fontSize: 30,
     margin: 5,
-    color: '#FFD700',
+    color: '#f5c518',
   },
   submitButton: {
     backgroundColor: '#007bff',
     padding: 10,
     borderRadius: 5,
+    width: '100%',
     alignItems: 'center',
   },
   submitButtonText: {
-    color: '#fff',
     fontSize: 16,
+    color: '#fff',
   },
 });
 

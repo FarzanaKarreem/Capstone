@@ -1,16 +1,13 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Alert, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { firestore } from '../firebase/firebaseConfig'; // Adjust the path according to your file structure
 import { useUser } from '../screens/UserProvider';
 
 const RequestScreen = ({ route, navigation }) => {
-  const { tutor } = route.params;  // Receive tutor details from the previous screen
+  const { tutor } = route.params;
   const { user } = useUser();
-
-  console.log('User Data:', user); // Log user data
-  console.log('Student Number:', user?.studentNum); // Log student number
 
   const [selectedModule, setSelectedModule] = useState('');
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('');
@@ -21,7 +18,8 @@ const RequestScreen = ({ route, navigation }) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
 
-  const timeSlots = [
+  const allTimeSlots = [
+    '00:00 AM - 01:00 AM',//DELETE THISSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
     '8:00 AM - 9:00 AM',
     '9:00 AM - 10:00 AM',
     '10:00 AM - 11:00 AM',
@@ -36,6 +34,13 @@ const RequestScreen = ({ route, navigation }) => {
     '7:00 PM - 8:00 PM',
   ];
 
+  // Automatically set the date to tomorrow
+  useEffect(() => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    setSelectedDate(tomorrow);
+  }, []);
+
   const handleSubmit = async () => {
     if (!selectedModule || !selectedTimeSlot || !additionalDetails) {
       Alert.alert("Incomplete Details", "Please fill out all fields before submitting.");
@@ -48,15 +53,14 @@ const RequestScreen = ({ route, navigation }) => {
         createdAt: serverTimestamp(),
         module: selectedModule,
         status: 'pending',
-        studentId: user.studentNum, // Use `studentId` field for the student
+        studentId: user.studentNum, 
         timeSlot: selectedTimeSlot,
-        tutorId: tutor.studentNum, // Use `tutorId` field for the tutor
-        sessionDate: selectedDate, // Store the selected date
+        tutorId: tutor.studentNum,
+        sessionDate: selectedDate,
       });
 
       setConfirmationModalVisible(true);
 
-      // Reset form fields if needed
       setSelectedModule('');
       setSelectedTimeSlot('');
       setAdditionalDetails('');
@@ -71,7 +75,6 @@ const RequestScreen = ({ route, navigation }) => {
     navigation.navigate('Home', { user });
   };
 
-  // Handle Date Picker Change
   const onChangeDate = (event, selectedDate) => {
     const currentDate = selectedDate || date;
     setShowDatePicker(Platform.OS === 'ios');
@@ -93,7 +96,6 @@ const RequestScreen = ({ route, navigation }) => {
           style={styles.input}
         />
 
-        {/* Date Picker */}
         <TouchableOpacity
           style={styles.input}
           onPress={() => setShowDatePicker(true)}
@@ -107,11 +109,10 @@ const RequestScreen = ({ route, navigation }) => {
             mode="date"
             display="default"
             onChange={onChangeDate}
-            minimumDate={new Date()} // Optional: Prevent selecting past dates
+            minimumDate={new Date(new Date().setDate(new Date().getDate() + 1))} // Minimum date is tomorrow
           />
         )}
 
-        {/* Time Slot Picker */}
         <TouchableOpacity
           onPress={() => setTimeSlotModalVisible(true)}
           style={styles.input}
@@ -128,7 +129,6 @@ const RequestScreen = ({ route, navigation }) => {
           style={[styles.input, isFocused && styles.inputFocused]}
         />
 
-        {/* Submit Request Button */}
         <TouchableOpacity
           onPress={handleSubmit}
           style={styles.submitButton}
@@ -146,7 +146,7 @@ const RequestScreen = ({ route, navigation }) => {
           <View style={styles.modalContainer}>
             <View style={styles.modalView}>
               <Text style={styles.modalTitle}>Select Time Slot</Text>
-              {timeSlots.map((slot, index) => (
+              {allTimeSlots.map((slot, index) => (
                 <TouchableOpacity
                   key={index}
                   style={styles.modalButton}
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     marginBottom: 20,
     textAlign: 'center',
-    fontFamily: 'Avenir', // Use the preferred font
+    fontFamily: 'Avenir',
   },
   input: {
     height: 40,
@@ -221,22 +221,22 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f8ff',
   },
   submitButton: {
-    backgroundColor: '#007bff', // Background color of the button
-    padding: 15, // Padding inside the button
-    borderRadius: 5, // Rounded corners
-    alignItems: 'center', // Center the text inside the button
-    marginTop: 20, // Space above the button
-    shadowColor: '#000', // Shadow color
-    shadowOffset: { width: 0, height: 2 }, // Shadow position
-    shadowOpacity: 0.25, // Shadow opacity
-    shadowRadius: 3.84, // Shadow blur
-    elevation: 5, // Shadow for Android
+    backgroundColor: '#007bff',
+    padding: 15,
+    borderRadius: 5,
+    alignItems: 'center',
+    marginTop: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   submitButtonText: {
-    color: '#fff', // Text color
-    fontSize: 16, // Text size
-    fontWeight: 'bold', // Bold text
-    fontFamily: 'Avenir', // Use the preferred font
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+    fontFamily: 'Avenir',
   },
   modalContainer: {
     flex: 1,
@@ -254,7 +254,7 @@ const styles = StyleSheet.create({
   modalTitle: {
     fontSize: 18,
     marginBottom: 15,
-    fontFamily: 'Avenir', // Use the preferred font
+    fontFamily: 'Avenir',
   },
   modalButton: {
     backgroundColor: '#007bff',
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
   modalButtonText: {
     color: 'white',
     fontSize: 16,
-    fontFamily: 'Avenir', // Use the preferred font
+    fontFamily: 'Avenir',
   },
   modalCloseButton: {
     backgroundColor: '#ccc',
@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
   modalCloseButtonText: {
     color: 'white',
     fontSize: 16,
-    fontFamily: 'Avenir', // Use the preferred font
+    fontFamily: 'Avenir',
   },
 });
 

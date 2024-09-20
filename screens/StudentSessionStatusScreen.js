@@ -25,7 +25,36 @@ const StudentSessionStatusScreen = () => {
       querySnapshot.forEach((doc) => {
         fetchedSessions.push({ id: doc.id, ...doc.data() });
       });
-      setSessions(fetchedSessions);
+
+      // Filter out sessions with status 'paid'
+      const activeSessions = fetchedSessions.filter(session => session.status !== 'paid');
+
+      // Separate sessions needing rating and those that don't
+      const sessionsNeedingRating = activeSessions.filter(session => {
+        const sessionDate = session.sessionDate.toDate ? session.sessionDate.toDate() : session.sessionDate;
+        return sessionDate < new Date() && !session.studentRating;
+      });
+
+      const otherSessions = activeSessions.filter(session => {
+        const sessionDate = session.sessionDate.toDate ? session.sessionDate.toDate() : session.sessionDate;
+        return !(sessionDate < new Date() && !session.studentRating);
+      });
+
+      // Sort both arrays by date, most recent first
+      sessionsNeedingRating.sort((a, b) => {
+        const aDate = a.sessionDate.toDate ? a.sessionDate.toDate() : a.sessionDate;
+        const bDate = b.sessionDate.toDate ? b.sessionDate.toDate() : b.sessionDate;
+        return bDate - aDate;
+      });
+
+      otherSessions.sort((a, b) => {
+        const aDate = a.sessionDate.toDate ? a.sessionDate.toDate() : a.sessionDate;
+        const bDate = b.sessionDate.toDate ? b.sessionDate.toDate() : b.sessionDate;
+        return bDate - aDate;
+      });
+
+      // Combine the sessions
+      setSessions([...sessionsNeedingRating, ...otherSessions]);
       setLoading(false);
     }, (error) => {
       console.error("Error fetching sessions: ", error);
@@ -91,31 +120,34 @@ const StudentSessionStatusScreen = () => {
   };
 
   const renderItem = (item) => {
-    const now = new Date();
-    const sessionDate = new Date(item.sessionDate.toDate ? item.sessionDate.toDate() : item.sessionDate);
-    const isCompleted = sessionDate < now;
+  const now = new Date();
+  const sessionDate = new Date(item.sessionDate.toDate ? item.sessionDate.toDate() : item.sessionDate);
+  const isCompleted = sessionDate < now;
 
-    return (
-      <View key={item.id} style={styles.card}>
-        <Text style={styles.tutorText}>Tutor: {item.tutorId}</Text>
-        <Text style={styles.cardContent}>Date: {sessionDate.toDateString()}</Text>
-        <Text style={styles.cardContent}>Time: {item.timeSlot}</Text>
-        <Text style={styles.status}>Status: {item.status}</Text>
+  // Check if the session is accepted
+  const isAccepted = item.status === 'Accepted';
 
-        {isCompleted && !item.studentRating && (
-          <TouchableOpacity
-            style={styles.rateButton}
-            onPress={() => {
-              setCurrentSessionId(item.id);
-              setRatingModalVisible(true);
-            }}
-          >
-            <Text style={styles.rateButtonText}>Rate this session</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    );
-  };
+  return (
+    <View key={item.id} style={styles.card}>
+      <Text style={styles.studentText}>Student: {item.studentId}</Text>
+      <Text style={styles.cardContent}>Date: {sessionDate.toDateString()}</Text>
+      <Text style={styles.cardContent}>Time: {item.timeSlot}</Text>
+      <Text style={styles.status}>Status: {item.status}</Text>
+
+      {isCompleted && isAccepted && !item.studentRating && (
+        <TouchableOpacity
+          style={styles.rateButton}
+          onPress={() => {
+            setCurrentSessionId(item.id);
+            setRatingModalVisible(true);
+          }}
+        >
+          <Text style={styles.rateButtonText}>Rate this session</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+};
 
   return (
     <View style={styles.container}>
