@@ -23,38 +23,18 @@ const StudentSessionStatusScreen = () => {
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const fetchedSessions = [];
       querySnapshot.forEach((doc) => {
-        fetchedSessions.push({ id: doc.id, ...doc.data() });
+        const sessionData = doc.data();
+        fetchedSessions.push({ id: doc.id, ...sessionData });
       });
 
-      // Filter out sessions with status 'paid'
-      const activeSessions = fetchedSessions.filter(session => session.status !== 'paid');
-
-      // Separate sessions needing rating and those that don't
-      const sessionsNeedingRating = activeSessions.filter(session => {
-        const sessionDate = session.sessionDate.toDate ? session.sessionDate.toDate() : session.sessionDate;
-        return sessionDate < new Date() && !session.studentRating;
-      });
-
-      const otherSessions = activeSessions.filter(session => {
-        const sessionDate = session.sessionDate.toDate ? session.sessionDate.toDate() : session.sessionDate;
-        return !(sessionDate < new Date() && !session.studentRating);
-      });
-
-      // Sort both arrays by date, most recent first
-      sessionsNeedingRating.sort((a, b) => {
+      // Sort sessions based on date
+      fetchedSessions.sort((a, b) => {
         const aDate = a.sessionDate.toDate ? a.sessionDate.toDate() : a.sessionDate;
         const bDate = b.sessionDate.toDate ? b.sessionDate.toDate() : b.sessionDate;
-        return bDate - aDate;
+        return aDate - bDate; // Ascending order
       });
 
-      otherSessions.sort((a, b) => {
-        const aDate = a.sessionDate.toDate ? a.sessionDate.toDate() : a.sessionDate;
-        const bDate = b.sessionDate.toDate ? b.sessionDate.toDate() : b.sessionDate;
-        return bDate - aDate;
-      });
-
-      // Combine the sessions
-      setSessions([...sessionsNeedingRating, ...otherSessions]);
+      setSessions(fetchedSessions);
       setLoading(false);
     }, (error) => {
       console.error("Error fetching sessions: ", error);
@@ -69,6 +49,11 @@ const StudentSessionStatusScreen = () => {
       try {
         const sessionRef = doc(firestore, 'sessions', currentSessionId);
         const sessionDoc = await getDoc(sessionRef);
+        if (!sessionDoc.exists()) {
+          Alert.alert("Error", "Session document not found.");
+          return;
+        }
+
         const sessionData = sessionDoc.data();
         const tutorStudentNum = sessionData.tutorId;
 
@@ -89,29 +74,24 @@ const StudentSessionStatusScreen = () => {
           await updateDoc(tutorDoc.ref, {
             averageRating: newAverageRating,
           });
-        } else {
-          Alert.alert("Error", "The tutor for this session does not exist. Please check the session data.");
-          return;
-        }
 
-        await updateDoc(sessionRef, { studentRating: rating });
+          await updateDoc(sessionRef, { studentRating: rating });
 
-        Alert.alert(
-          'Success',
-          'Your rating has been successfully submitted!',
-          [
+          Alert.alert('Success', 'Your rating has been successfully submitted!', [
             {
               text: 'OK',
               onPress: () => {
                 setRatingModalVisible(false);
                 setRating(0);
+                // Remove the rated session from the displayed list
+                setSessions(prevSessions => prevSessions.filter(session => session.id !== currentSessionId));
               },
             },
-          ],
-          { cancelable: false }
-        );
+          ]);
+        } else {
+          Alert.alert("Error", "The tutor for this session does not exist.");
+        }
       } catch (error) {
-        console.error("Error updating rating: ", error);
         Alert.alert("Error", "There was an issue submitting your rating. Please try again.");
       }
     } else {
@@ -120,34 +100,31 @@ const StudentSessionStatusScreen = () => {
   };
 
   const renderItem = (item) => {
-  const now = new Date();
-  const sessionDate = new Date(item.sessionDate.toDate ? item.sessionDate.toDate() : item.sessionDate);
-  const isCompleted = sessionDate < now;
+    const now = new Date();
+    const sessionDate = new Date(item.sessionDate.toDate ? item.sessionDate.toDate() : item.sessionDate);
+    const isCompleted = sessionDate < now;
 
-  // Check if the session is accepted
-  const isAccepted = item.status === 'Accepted';
+    return (
+      <View key={item.id} style={styles.card}>
+        <Text style={styles.studentText}>Tutor: {item.tutorId}</Text>
+        <Text style={styles.cardContent}>Date: {sessionDate.toDateString()}</Text>
+        <Text style={styles.cardContent}>Time: {item.timeSlot}</Text>
+        <Text style={styles.status}>Status: {isCompleted ? 'Completed' : item.status}</Text>
 
-  return (
-    <View key={item.id} style={styles.card}>
-      <Text style={styles.studentText}>Student: {item.studentId}</Text>
-      <Text style={styles.cardContent}>Date: {sessionDate.toDateString()}</Text>
-      <Text style={styles.cardContent}>Time: {item.timeSlot}</Text>
-      <Text style={styles.status}>Status: {item.status}</Text>
-
-      {isCompleted && isAccepted && !item.studentRating && (
-        <TouchableOpacity
-          style={styles.rateButton}
-          onPress={() => {
-            setCurrentSessionId(item.id);
-            setRatingModalVisible(true);
-          }}
-        >
-          <Text style={styles.rateButtonText}>Rate this session</Text>
-        </TouchableOpacity>
-      )}
-    </View>
-  );
-};
+        {isCompleted && !item.studentRating && (
+          <TouchableOpacity
+            style={styles.rateButton}
+            onPress={() => {
+              setCurrentSessionId(item.id);
+              setRatingModalVisible(true);
+            }}
+          >
+            <Text style={styles.rateButtonText}>Rate this session</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -210,12 +187,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 8,
     elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
   },
-  tutorText: {
+  studentText: {
     fontSize: 16,
     fontWeight: 'bold',
     color: '#333',

@@ -19,7 +19,6 @@ const RequestScreen = ({ route, navigation }) => {
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   const allTimeSlots = [
-    '00:00 AM - 01:00 AM',//DELETE THISSSSSSSSSSSSSSSSSSSSSSSSSSSSSS
     '8:00 AM - 9:00 AM',
     '9:00 AM - 10:00 AM',
     '10:00 AM - 11:00 AM',
